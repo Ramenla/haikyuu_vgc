@@ -1,0 +1,1 @@
+const fs = require('fs'); let data = fs.readFileSync('src/data/cardDatabase.ts', 'utf8'); data = data.replace(/Aoba Johsai/g, 'Aoba Josai'); data = data.replace(/school: "Fukurodani"/g, 'school: "Fukurodani"'); fs.writeFileSync('src/data/cardDatabase.ts', data);
