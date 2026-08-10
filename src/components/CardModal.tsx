@@ -32,11 +32,11 @@ export const CardModal: React.FC<CardModalProps> = ({
     <div className="w-full md:w-[185px] bg-neutral-900 border border-gray-800 rounded-lg p-1.5 md:p-2 flex flex-row md:flex-col justify-start shrink-0 h-[155px] md:h-full overflow-hidden shadow-xl box-border gap-1.5 md:gap-0">
       {selectedCard ? (
         <>
-          <div className="w-[85px] md:w-full aspect-[2/3] max-h-[140px] md:max-h-[165px] bg-black rounded border border-gray-700 overflow-hidden relative group shrink-0">
+          <div className="w-[85px] md:w-[130px] mx-auto aspect-[2/3] max-h-[140px] md:max-h-[195px] bg-black rounded border border-gray-700 overflow-hidden relative group shrink-0">
             <img
               src={encodeURI(selectedCard.image)}
               alt={selectedCard.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
             />
             <span className="absolute top-1 left-1 text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded border border-gray-700">
               {selectedCard.type}
@@ -156,19 +156,17 @@ export const CardModal: React.FC<CardModalProps> = ({
                   }
                 }
 
-                if (currentPhase === "Start Phase") {
-                  buttons.push(
-                    <button
-                      key="break"
-                      onClick={onDeclareBreak}
-                      disabled={currentTurn !== "Player 1"}
-                      className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all ${currentTurn === "Player 1" ? "bg-white hover:bg-gray-200 text-black border border-gray-300" : "bg-neutral-800 text-gray-600 border border-gray-700 cursor-not-allowed"
-                        }`}
-                    >
-                      Break
-                    </button>
-                  );
-                }
+                buttons.push(
+                  <button
+                    key="break"
+                    onClick={onDeclareBreak}
+                    disabled={currentTurn !== "Player 1"}
+                    className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all ${currentTurn === "Player 1" ? "bg-white hover:bg-gray-200 text-black border border-gray-300" : "bg-neutral-800 text-gray-600 border border-gray-700 cursor-not-allowed"
+                      }`}
+                  >
+                    Break
+                  </button>
+                );
 
                 return buttons;
               })()}
@@ -180,6 +178,30 @@ export const CardModal: React.FC<CardModalProps> = ({
           <p className="text-[10px] text-gray-500 font-bold leading-relaxed uppercase tracking-wider">
             Pilih kartu untuk melihat detail
           </p>
+        </div>
+      )}
+
+      {/* Action buttons when NO card is selected */}
+      {!selectedCard && !pendingChoice && (
+        <div className="flex flex-col justify-end w-[85px] md:w-full gap-1.5 mt-auto shrink-0 pb-1">
+          <button
+            onClick={onNextPhase}
+            disabled={!isPlayValid}
+            className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all border ${
+              isPlayValid ? "bg-orange-600 hover:bg-orange-500 text-white border-orange-500" : "bg-neutral-800 text-gray-600 border-gray-700 cursor-not-allowed"
+            }`}
+          >
+            {currentTurn === "Player 1" ? (isPlayValid ? "Selesaikan Fase" : "Mainkan") : "Tunggu"}
+          </button>
+          <button
+            onClick={onDeclareBreak}
+            disabled={currentTurn !== "Player 1"}
+            className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all border ${
+              currentTurn === "Player 1" ? "bg-white hover:bg-gray-200 text-black border-gray-300" : "bg-neutral-800 text-gray-600 border-gray-700 cursor-not-allowed"
+            }`}
+          >
+            Break
+          </button>
         </div>
       )}
     </div>
