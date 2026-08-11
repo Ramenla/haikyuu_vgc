@@ -154,7 +154,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                     </button>
                   );
                 } else {
-                  if (selectedCard && 'isEffectActive' in selectedCard && (selectedCard as CardInstance).isEffectActive) {
+                  if (selectedCard && 'isEffectActive' in selectedCard && (selectedCard as CardInstance).isEffectActive && (selectedCard as CardInstance).effectType) {
                     buttons.push(
                       <button
                         key="use_effect_board"
@@ -167,7 +167,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                       </button>
                     );
                   } else if (currentPhase === "Start Phase" || currentPhase === "Receive Phase" || currentPhase === "Toss Phase" || currentPhase === "Attack Phase" || currentPhase === "Block Phase") {
-                    if (selectedCard && selectedCard.type === "Action" && "location" in selectedCard && selectedCard.location === "hand") {
+                    if (selectedCard && "location" in selectedCard && selectedCard.location === "hand" && selectedCard.effectTrigger === "onHandActivate") {
                       buttons.push(
                         <button
                           key="use_effect"
@@ -176,7 +176,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                           className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all shadow-lg ${currentTurn === "Player 1" ? "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500" : "bg-neutral-800 text-gray-600 border border-gray-700 cursor-not-allowed"
                             }`}
                         >
-                          Pakai Efek Action
+                          Pakai Efek Tangan
                         </button>
                       );
                     }
