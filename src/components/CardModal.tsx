@@ -31,7 +31,10 @@ export const CardModal: React.FC<CardModalProps> = ({
   pendingChoice,
 }) => {
   return (
-    <div className="w-full md:w-[185px] bg-neutral-900 border border-gray-800 rounded-lg p-1.5 md:p-2 flex flex-row md:flex-col justify-start shrink-0 h-fit max-h-[140px] md:max-h-none md:h-full overflow-hidden shadow-xl box-border gap-1.5 md:gap-0">
+    <div 
+      onClick={(e) => e.stopPropagation()}
+      className="w-full md:w-[185px] bg-neutral-900 border border-gray-800 rounded-lg p-1.5 md:p-2 flex flex-row md:flex-col justify-start shrink-0 h-fit max-h-[140px] md:max-h-none md:h-full overflow-hidden shadow-xl box-border gap-1.5 md:gap-0"
+    >
       {selectedCard ? (
         <>
           <div className={`${selectedCard.type === "Action" ? "w-[110px]" : "w-[85px]"} md:w-[130px] mx-auto relative group shrink-0 flex flex-col justify-end`}>

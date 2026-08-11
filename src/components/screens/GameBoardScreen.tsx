@@ -270,7 +270,10 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
     const playable = isPlayableZone(zoneId);
     return (
       <div
-        onClick={() => onZoneClick(zoneId)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onZoneClick(zoneId);
+        }}
         className={`${
           isBlock ? "flex-1" : zoneId === "action" ? "w-full" : "w-16"
         } h-[5.5rem] rounded flex items-center justify-center text-[9px] font-bold text-center leading-tight transition-all border-2
@@ -287,7 +290,10 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
   };
 
   return (
-    <div className="h-screen w-screen bg-black text-gray-200 font-sans p-2 flex flex-col md:flex-row gap-2 overflow-hidden box-border">
+    <div 
+      onClick={() => onSelectCard(null)}
+      className="h-screen w-screen bg-black text-gray-200 font-sans p-2 flex flex-col md:flex-row gap-2 overflow-hidden box-border"
+    >
       {/* Panel Kiri: Detail Kartu Penuh */}
       
       <div className="hidden md:flex w-full md:w-auto h-auto md:h-full flex-shrink-0 flex-col order-last md:order-none z-[60] overflow-hidden md:overflow-visible">
@@ -330,11 +336,11 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-[7px] text-gray-400 font-bold uppercase mb-0.5">Defense</span>
-                  <span className="text-[11px] font-black text-blue-500 leading-none">{points.defense}</span>
+                  <span className="text-[11px] font-black text-blue-500 leading-none">{points.totalDefense}</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-[7px] text-gray-400 font-bold uppercase mb-0.5">Attack</span>
-                  <span className="text-[11px] font-black text-orange-500 leading-none">{points.attack}</span>
+                  <span className="text-[11px] font-black text-orange-500 leading-none">{points.outgoingAttack}</span>
                 </div>
              </div>
              <div className="flex-1 bg-neutral-900 border-2 border-gray-700 rounded-sm py-1.5 px-2 flex justify-around items-center shadow-md">
@@ -601,7 +607,10 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
         </div>
 
         {/* MOBILE LOG & CHAT BUTTONS */}
-        <div className="md:hidden flex w-full max-w-[480px] gap-2 mt-auto shrink-0 px-2 pb-2 relative">
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="md:hidden flex w-full max-w-[480px] gap-2 mt-auto shrink-0 px-2 pb-2 relative"
+        >
           <button 
             onClick={() => setActiveMobileMenu(prev => prev === "log" ? null : "log")}
             className="flex-1 bg-neutral-300 hover:bg-neutral-400 text-black font-bold py-1 px-2 text-[9px] rounded border-2 border-neutral-400 shadow-[0_0_10px_rgba(0,0,0,0.5)] flex justify-between items-center transition-colors z-[101]"
@@ -666,7 +675,10 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
       {/* Mobile Overlay for Right Panel */}
       {/* Mobile overlay no longer used for Right Panel */}
       {/* Panel Kanan: Menu dan Indikator */}
-      <div className="hidden md:flex w-[200px] bg-neutral-900/95 md:bg-transparent flex-col gap-2 shrink-0 h-full p-2 md:p-0 rounded-lg md:rounded-none overflow-y-auto">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="hidden md:flex w-[200px] bg-neutral-900/95 md:bg-transparent flex-col gap-2 shrink-0 h-full p-2 md:p-0 rounded-lg md:rounded-none overflow-y-auto"
+      >
         <button
           onClick={() => onNavigate("menu")}
           className="bg-neutral-800 border-2 border-gray-700 hover:border-orange-500 hover:text-orange-500 text-white font-bold py-2 px-3 rounded transition-colors text-xs shrink-0"
