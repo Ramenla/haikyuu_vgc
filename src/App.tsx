@@ -2111,7 +2111,9 @@ export default function App() {
           roomCode={roomCode}
           onReady={(deckId, opponentDeckId, opponentDeckCards) => {
             setSelectedDeckType(deckId);
-            startGame(deckId, opponentDeckId || undefined, opponentDeckCards);
+            if (isHost) {
+              startGame(deckId, opponentDeckId || undefined, opponentDeckCards);
+            }
           }}
           onOpponentNameChange={(name) => setOpponentName(name)}
           customDecks={customDecks}
