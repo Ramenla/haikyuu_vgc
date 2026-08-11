@@ -28,6 +28,8 @@ interface GameBoardScreenProps {
   isOpponentDisconnected?: boolean;
   playerName?: string;
   opponentName?: string;
+  chatMessages: import('../../types/game').ChatMessage[];
+  onSendMessage: (text: string) => void;
 }
 
 export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
@@ -53,13 +55,23 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
   pendingChoice,
   isOpponentDisconnected,
   playerName = "Player 1",
-  opponentName = "Player 2"
+  opponentName = "Player 2",
+  chatMessages,
+  onSendMessage
 }) => {
   const isDefendingChoice = currentPhase === "Defense Choice Phase" && pendingChoice;
   const logEndRef = useRef<HTMLDivElement>(null);
 
   const [activeMobileMenu, setActiveMobileMenu] = useState<"log" | "chat" | null>(null);
+  const [chatInput, setChatInput] = useState("");
   const mobileLogEndRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, activeMobileMenu]);
 
   useEffect(() => {
     if (activeMobileMenu === "log" && mobileLogEndRef.current) {
@@ -72,6 +84,33 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
       logEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [gameLogs]);
+
+  const handleChatSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && chatInput.trim() !== '') {
+      onSendMessage(chatInput);
+      setChatInput("");
+    }
+  };
+
+  const renderChatMessages = () => {
+    if (chatMessages.length === 0) {
+      return <div className="text-gray-600 text-center italic mt-2 text-[10px]">Belum ada pesan.</div>;
+    }
+    
+    return (
+      <div className="flex flex-col gap-1.5 w-full">
+        {chatMessages.map(msg => (
+          <div key={msg.id} className={`flex flex-col ${msg.sender === "Player 1" ? "items-end" : "items-start"}`}>
+            <span className="text-[8px] text-gray-500">{msg.sender === "Player 1" ? playerName : opponentName}</span>
+            <div className={`px-2 py-1 rounded-lg text-[10px] max-w-[90%] break-words ${msg.sender === "Player 1" ? "bg-blue-600 text-white rounded-br-none" : "bg-neutral-700 text-gray-200 rounded-bl-none"}`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        <div ref={chatEndRef} />
+      </div>
+    );
+  };
 
   // Render Indikator Fase (Flowchart)
   const renderPhaseIndicator = () => {
@@ -656,14 +695,30 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
                 
                 {activeMobileMenu === "chat" && (
                   <div className="flex flex-col h-full">
-                    <div className="flex-1 overflow-y-auto text-[10px] text-gray-400">
-                      <div className="text-gray-600 text-center italic mt-2">Chat system is not yet active</div>
+                    <div className="flex-1 overflow-y-auto text-[10px] text-gray-400 p-1 scrollbar-minimalist">
+                      {renderChatMessages()}
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Ketik pesan..."
-                      className="bg-black border border-gray-700 rounded p-1.5 text-[10px] text-white focus:outline-none focus:border-orange-500 transition-colors mt-2 shrink-0 w-full"
-                    />
+                    <div className="flex gap-1 mt-2 shrink-0 w-full">
+                      <input
+                        type="text"
+                        placeholder="Ketik pesan..."
+                        className="flex-1 bg-black border border-gray-700 rounded p-1.5 text-[10px] text-white focus:outline-none focus:border-orange-500 transition-colors"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={handleChatSubmit}
+                      />
+                      <button 
+                        onClick={() => {
+                          if (chatInput.trim() !== '') {
+                            onSendMessage(chatInput);
+                            setChatInput("");
+                          }
+                        }}
+                        className="bg-orange-600 hover:bg-orange-500 text-white rounded px-3 py-1 text-[10px] font-bold"
+                      >
+                        Kirim
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -773,12 +828,30 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
           <span className="font-bold text-gray-300 mb-1.5 border-b border-gray-700 pb-1 text-[10px] uppercase tracking-wider shrink-0">
             Chat Area
           </span>
-          <div className="overflow-y-auto flex-1 scrollbar-minimalist"></div>
-          <input
-            type="text"
-            placeholder="Ketik pesan..."
-            className="bg-black border border-gray-700 rounded p-1.5 text-[9px] text-white focus:outline-none focus:border-orange-500 transition-colors mt-1.5 shrink-0"
-          />
+          <div className="overflow-y-auto flex-1 scrollbar-minimalist p-1">
+            {renderChatMessages()}
+          </div>
+          <div className="flex gap-1 mt-1.5 shrink-0 w-full">
+            <input
+              type="text"
+              placeholder="Ketik pesan..."
+              className="flex-1 bg-black border border-gray-700 rounded p-1.5 text-[9px] text-white focus:outline-none focus:border-orange-500 transition-colors"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={handleChatSubmit}
+            />
+            <button 
+              onClick={() => {
+                if (chatInput.trim() !== '') {
+                  onSendMessage(chatInput);
+                  setChatInput("");
+                }
+              }}
+              className="bg-orange-600 hover:bg-orange-500 text-white rounded px-2 py-1 text-[9px] font-bold"
+            >
+              Kirim
+            </button>
+          </div>
         </div>
       </div>
       {/* Opponent Disconnected Overlay */}

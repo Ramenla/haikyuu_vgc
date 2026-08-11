@@ -8,7 +8,7 @@ interface OnlineRoomScreenProps {
   onNavigate: (screen: Screen) => void;
   playerName: string;
   roomCode: string;
-  onReady: (deckId: string, opponentDeckId: string | null) => void;
+  onReady: (deckId: string, opponentDeckId: string | null, opponentDeckCards?: string[]) => void;
   onOpponentNameChange?: (name: string) => void;
 }
 
@@ -43,10 +43,16 @@ export const OnlineRoomScreen: React.FC<OnlineRoomScreenProps> = ({
   const [selectedDeckId, setSelectedDeckId] = useState<string>(availableDecks[0]);
   const [opponentName, setOpponentName] = useState<string | null>(null);
   const [opponentSelectedDeckId, setOpponentSelectedDeckId] = useState<string | null>(null);
+  const [opponentDeckCards, setOpponentDeckCards] = useState<string[]>([]);
+
+  const getDeckCards = (deckId: string) => {
+    const customDeck = customDecks.find(d => d.id === deckId);
+    return customDeck ? customDeck.cards : [];
+  };
 
   useEffect(() => {
     // Notify server of our initial deck
-    socket.emit('updateDeck', { roomCode, deckId: selectedDeckId });
+    socket.emit('updateDeck', { roomCode, deckId: selectedDeckId, deckCards: getDeckCards(selectedDeckId) });
     
     // Request full state on mount
     socket.emit('requestRoomState', roomCode);
@@ -59,6 +65,7 @@ export const OnlineRoomScreen: React.FC<OnlineRoomScreenProps> = ({
           setOpponentName(players[id].name);
           onOpponentNameChange?.(players[id].name);
           setOpponentSelectedDeckId(players[id].deckId);
+          setOpponentDeckCards(players[id].deckCards || []);
           setOpponentReady(players[id].isReady);
         }
       }
@@ -68,11 +75,19 @@ export const OnlineRoomScreen: React.FC<OnlineRoomScreenProps> = ({
       setOpponentName(playerData.name);
       onOpponentNameChange?.(playerData.name);
       setOpponentSelectedDeckId(playerData.deckId);
+      setOpponentDeckCards(playerData.deckCards || []);
       setOpponentReady(playerData.isReady);
     });
 
-    socket.on('opponentDeckUpdated', (deckId: string) => {
-      setOpponentSelectedDeckId(deckId);
+    socket.on('opponentDeckUpdated', (data: any) => {
+      // Data might be string (old server) or object {deckId, deckCards}
+      if (typeof data === 'string') {
+        setOpponentSelectedDeckId(data);
+        setOpponentDeckCards([]);
+      } else {
+        setOpponentSelectedDeckId(data.deckId);
+        setOpponentDeckCards(data.deckCards || []);
+      }
     });
 
     socket.on('opponentReadyStatus', (status: boolean) => {
@@ -90,6 +105,7 @@ export const OnlineRoomScreen: React.FC<OnlineRoomScreenProps> = ({
     socket.on('playerLeft', () => {
       setOpponentName(null);
       setOpponentSelectedDeckId(null);
+      setOpponentDeckCards([]);
       setOpponentReady(false);
       setCountdown(null);
     });
@@ -102,6 +118,7 @@ export const OnlineRoomScreen: React.FC<OnlineRoomScreenProps> = ({
           setOpponentName(players[id].name);
           onOpponentNameChange?.(players[id].name);
           setOpponentSelectedDeckId(players[id].deckId);
+          setOpponentDeckCards(players[id].deckCards || []);
           setOpponentReady(players[id].isReady);
         }
       }
@@ -122,7 +139,7 @@ export const OnlineRoomScreen: React.FC<OnlineRoomScreenProps> = ({
   // Handle local deck change
   const handleDeckChange = (deckId: string) => {
     setSelectedDeckId(deckId);
-    socket.emit('updateDeck', { roomCode, deckId });
+    socket.emit('updateDeck', { roomCode, deckId, deckCards: getDeckCards(deckId) });
   };
 
   // Handle local ready toggle
@@ -139,9 +156,9 @@ export const OnlineRoomScreen: React.FC<OnlineRoomScreenProps> = ({
       return () => clearTimeout(timer);
     } else if (countdown === 0) {
       setCountdown(-1); // Prevent infinite loop
-      onReady(selectedDeckId, opponentSelectedDeckId);
+      onReady(selectedDeckId, opponentSelectedDeckId, opponentDeckCards);
     }
-  }, [countdown, onReady, selectedDeckId, opponentSelectedDeckId]);
+  }, [countdown, onReady, selectedDeckId, opponentSelectedDeckId, opponentDeckCards]);
 
   // Helper untuk mengambil preview kartu
   const getFirstCardImage = (deckName: string | null) => {

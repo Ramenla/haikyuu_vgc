@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CardData, CardInstance } from "./types/card";
-import { Phase, Turn, Screen, PendingEffectCard, PendingCardSelection, PendingChoice, CustomDeck } from "./types/game";
+import { Phase, Turn, Screen, PendingEffectCard, PendingCardSelection, PendingChoice, CustomDeck, ChatMessage } from "./types/game";
 import { cardDatabase } from "./data/cardDatabase";
+import { getStarterDeckCards } from "./utils/starterDeckUtils";
 import { MenuScreen } from "./components/screens/MenuScreen";
 import { DeckSelectionScreen } from "./components/screens/DeckSelectionScreen";
 import { DeckBuilderScreen } from "./components/screens/DeckBuilderScreen";
@@ -77,6 +78,7 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [pendingCardSelection, setPendingCardSelection] = useState<PendingCardSelection | null>(null);
   const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   // Efek Toast Notification
   // Penjelasan Logika: Jika toastMessage memiliki isi (tidak null), kita akan memasang timer.
@@ -271,12 +273,17 @@ export default function App() {
       setForceSyncTrigger((prev) => prev + 1);
     };
 
+    const handleChatMessage = (messageData: ChatMessage) => {
+      setChatMessages((prev) => [...prev, messageData]);
+    };
+
     socket.on('gameStarted', handleGameStarted);
     socket.on('opponentAction', handleOpponentAction);
     socket.on('playerLeft', handlePlayerLeft);
     socket.on('opponentDisconnected', handleOpponentDisconnected);
     socket.on('opponentRejoined', handleOpponentRejoined);
     socket.on('syncRequested', handleSyncRequested);
+    socket.on('chatMessage', handleChatMessage);
 
     return () => {
       socket.off('gameStarted', handleGameStarted);
@@ -285,6 +292,7 @@ export default function App() {
       socket.off('opponentDisconnected', handleOpponentDisconnected);
       socket.off('opponentRejoined', handleOpponentRejoined);
       socket.off('syncRequested', handleSyncRequested);
+      socket.off('chatMessage', handleChatMessage);
     };
   }, [isOnline, isHost, currentScreen, opponentName]);
 
@@ -406,6 +414,29 @@ export default function App() {
   };
 
   const points = calculatePoints();
+
+  const sendChatMessage = (text: string) => {
+    if (!text.trim()) return;
+    const newMessage: ChatMessage = {
+      id: Date.now().toString() + Math.random().toString(36).substring(7),
+      sender: "Player 1", // For our local perspective, we are always sending as Player 1
+      text: text.trim(),
+      timestamp: Date.now()
+    };
+    
+    // Add to our own state immediately
+    setChatMessages(prev => [...prev, newMessage]);
+    
+    // Broadcast to opponent (will arrive at opponent and be mirrored to 'Player 2')
+    if (isOnline && roomCode) {
+      // Create a mirrored version for the opponent
+      const opponentMessage: ChatMessage = {
+        ...newMessage,
+        sender: "Player 2" // To the opponent, WE are Player 2
+      };
+      socket.emit('chatMessage', { roomCode, ...opponentMessage });
+    }
+  };
 
   // Logika Bot Sederhana
   useEffect(() => {
@@ -979,25 +1010,25 @@ export default function App() {
     }
   };
 
-  const startGame = (overrideDeckType?: string, opponentDeckType?: string) => {
+  const startGame = (overrideDeckType?: string, opponentDeckType?: string, opponentDeckCards?: string[]) => {
     const deckTypeToUse = (typeof overrideDeckType === "string" ? overrideDeckType : null) || selectedDeckType;
     let newDeck: CardInstance[] = [];
     let poolKartu: CardData[] = [];
 
-    const getPoolForDeck = (deckName: string | null) => {
-      if (deckName === "Karasuno Starter Deck") return cardDatabase.filter((c) => c.id.startsWith("HVD-01"));
-      if (deckName === "Rivals Starter Deck") return cardDatabase.filter((c) => c.id.startsWith("HVD-02"));
-      if (deckName === "Karasuno Evolves Explosively Starter Deck") return cardDatabase.filter((c) => c.id.startsWith("HVD-03"));
-      if (deckName === "It's Seijō that Goes to Nationals Starter Deck") return cardDatabase.filter((c) => c.id.startsWith("HVD-04"));
-      if (deckName === "Powerhouse!! Fukurodani Academy Group Starter Deck") return cardDatabase.filter((c) => c.id.startsWith("HVD-05"));
+    const getPoolForDeck = (deckName: string | null, customCards?: string[]) => {
+      if (!deckName) return cardDatabase.filter((c) => c.id.startsWith("HVD-02"));
       
-      // Handle custom deck
+      // Jika ini deck kustom lawan, gunakan daftar kartu yang dikirim via jaringan
+      if (customCards && customCards.length > 0) {
+        return customCards.map(cardId => cardDatabase.find(c => c.id === cardId)!).filter(Boolean);
+      }
+      
       const customDeck = customDecks.find(d => d.id === deckName);
       if (customDeck) {
         return customDeck.cards.map(cardId => cardDatabase.find(c => c.id === cardId)!).filter(Boolean);
       }
       
-      return cardDatabase.filter((c) => c.id.startsWith("HVD-02"));
+      return getStarterDeckCards(deckName, cardDatabase);
     };
 
     poolKartu = getPoolForDeck(deckTypeToUse);
@@ -1009,51 +1040,38 @@ export default function App() {
       return;
     }
 
-    if (isCustomDeck) {
-      poolKartu.forEach((card) => {
+    poolKartu.forEach((card) => {
+      newDeck.push({
+        ...card,
+        instanceId: Math.random().toString(36).substring(2, 11),
+        location: "deck",
+      });
+    });
+
+    // Fallback if empty for some reason
+    if (newDeck.length === 0) {
+      const fallbackDeck = getStarterDeckCards("Rivals Starter Deck", cardDatabase);
+      fallbackDeck.forEach(card => {
         newDeck.push({
           ...card,
           instanceId: Math.random().toString(36).substring(2, 11),
           location: "deck",
         });
       });
-    } else {
-      let count = 0;
-      while (newDeck.length < 40 && poolKartu.length > 0) {
-        const card = poolKartu[count % poolKartu.length];
-        const totalCopies = newDeck.filter((c) => c.id === card.id).length;
-        if (totalCopies < 4) {
-          newDeck.push({
-            ...card,
-            instanceId: Math.random().toString(36).substring(2, 11),
-            location: "deck",
-          });
-        } else {
-          poolKartu = poolKartu.filter((c) => c.id !== card.id);
-        }
-        count++;
-      }
     }
 
     newDeck = newDeck.sort(() => Math.random() - 0.5);
 
     // Build opponent/bot deck using opponentDeckType if provided (online), else Rivals
-    let botPool = getPoolForDeck(opponentDeckType || "Rivals Starter Deck");
+    let botPool = getPoolForDeck(opponentDeckType || "Rivals Starter Deck", opponentDeckCards);
     let botNewDeck: any[] = [];
-    let countBot = 0;
-    while (botNewDeck.length < 40 && botPool.length > 0) {
-      const card = botPool[countBot % botPool.length];
-      const totalCopies = botNewDeck.filter((c: any) => c.id === card.id).length;
-      if (totalCopies < 4) {
-        botNewDeck.push({
-          ...card,
-          instanceId: Math.random().toString(36).substring(2, 11),
-        });
-      } else {
-        botPool = botPool.filter((c) => c.id !== card.id);
-      }
-      countBot++;
-    }
+    botPool.forEach((card) => {
+      botNewDeck.push({
+        ...card,
+        instanceId: Math.random().toString(36).substring(2, 11),
+        location: "deck",
+      });
+    });
     botNewDeck = botNewDeck.sort(() => Math.random() - 0.5);
 
     const handCards = newDeck
@@ -1888,14 +1906,14 @@ export default function App() {
                     return { ...c, location: "attack", isGuts: false };
                   }
                   if (c.instanceId === cardId) {
-                    return { ...c, location: "drop", isEffectActive: false };
+                    return { ...c, location: "attack", isGuts: true, isEffectActive: false };
                   }
                   if (c.instanceId === tossCard.instanceId) {
                     return { ...c, isEffectActive: false };
                   }
                   return c;
                 }));
-                addLog(`Efek Kenma Aktif! Penyerang diganti dengan ${selectedGuts.name} dari Guts.`);
+                addLog(`Efek Kenma Aktif! Penyerang diganti dengan ${selectedGuts.name} dari Guts. Karakter awal menjadi Guts.`);
               }
             });
           }
@@ -2070,9 +2088,9 @@ export default function App() {
           onNavigate={handleNavigate}
           playerName={playerName}
           roomCode={roomCode}
-          onReady={(deckId, opponentDeckId) => {
+          onReady={(deckId, opponentDeckId, opponentDeckCards) => {
             setSelectedDeckType(deckId);
-            startGame(deckId, opponentDeckId || undefined);
+            startGame(deckId, opponentDeckId || undefined, opponentDeckCards);
           }}
           onOpponentNameChange={(name) => setOpponentName(name)}
           customDecks={customDecks}
@@ -2106,6 +2124,8 @@ export default function App() {
         pendingChoice={pendingChoice}
         playerName={playerName}
         opponentName={opponentName}
+        chatMessages={chatMessages}
+        onSendMessage={sendChatMessage}
       />
     );
   };

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CardData } from "../../types/card";
 import { cardDatabase } from "../../data/cardDatabase";
+import { getStarterDeckCards } from "../../utils/starterDeckUtils";
 import { Screen, CustomDeck } from "../../types/game";
 
 interface DeckBuilderScreenProps {
@@ -32,9 +33,10 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
 }) => {
   
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
+  const [showMobileDetail, setShowMobileDetail] = useState<boolean>(false);
 
   const [activeDeckId, setActiveDeckId] = useState<string>("new");
-  const [deckName, setDeckName] = useState<string>("Custom Deck");
+  const [deckName, setDeckName] = useState<string>("Starter Deck");
 
   const handleSaveDeck = () => {
     if (deckName.trim() === "") {
@@ -44,7 +46,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
 
     const isValid = builderDeck.length === 40;
     
-    if (activeDeckId === "new") {
+    if (activeDeckId === "new" || activeDeckId.startsWith("starter-")) {
       const newId = "deck_" + Date.now();
       const newDeck: CustomDeck = {
         id: newId,
@@ -66,11 +68,11 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
   };
 
   const handleDeleteDeck = () => {
-    if (activeDeckId === "new") return;
+    if (activeDeckId === "new" || activeDeckId.startsWith("starter-")) return;
     if (confirm("Apakah kamu yakin ingin menghapus deck ini?")) {
       setCustomDecks(customDecks.filter(d => d.id !== activeDeckId));
       setActiveDeckId("new");
-      setDeckName("Custom Deck");
+      setDeckName("Starter Deck");
       setBuilderDeck([]);
     }
   };
@@ -79,8 +81,28 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
     const id = e.target.value;
     setActiveDeckId(id);
     if (id === "new") {
-      setDeckName("Custom Deck");
+      setDeckName("Custom Deck Baru");
       setBuilderDeck([]);
+    } else if (id.startsWith("starter-")) {
+      const prefixMap: Record<string, string> = {
+        "starter-1": "HVD-01",
+        "starter-2": "HVD-02",
+        "starter-3": "HVD-03",
+        "starter-4": "HVD-04",
+        "starter-5": "HVD-05"
+      };
+      const titleMap: Record<string, string> = {
+        "starter-1": "Karasuno Starter Deck",
+        "starter-2": "Rivals Starter Deck",
+        "starter-3": "Karasuno Evo Starter Deck",
+        "starter-4": "Aoba Johsai Starter Deck",
+        "starter-5": "Fukurodani Starter Deck"
+      };
+      
+      setDeckName(titleMap[id] || "Starter Deck");
+      
+      const starterCards = getStarterDeckCards(id, cardDatabase);
+      setBuilderDeck(starterCards);
     } else {
       const deck = customDecks.find(d => d.id === id);
       if (deck) {
@@ -162,8 +184,8 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
 
   return (
     <div className="h-screen w-screen bg-black text-gray-200 font-sans p-4 flex flex-col gap-4 overflow-y-auto md:overflow-hidden box-border custom-scrollbar">
-      {/* Header Deck Builder */}
-      <div className="flex flex-col shrink-0 gap-4">
+      {/* Header Deck Builder (Desktop) */}
+      <div className="hidden md:flex flex-col shrink-0 gap-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <h2 className="text-xl md:text-3xl font-bold text-orange-500 uppercase tracking-widest">
             Deck Builder
@@ -181,7 +203,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
             <button onClick={handleImport} className="px-4 py-2 bg-purple-600 border-2 border-purple-500 hover:bg-purple-700 text-white font-bold uppercase tracking-wider text-[10px] md:text-sm transition-all rounded whitespace-nowrap">
               Import
             </button>
-            <button onClick={handleSaveDeck} className="px-4 py-2 bg-orange-600 border-2 border-orange-500 hover:bg-orange-700 text-white font-bold uppercase tracking-wider text-[10px] md:text-sm transition-all rounded whitespace-nowrap">
+            <button onClick={handleSaveDeck} className="hidden md:block px-4 py-2 bg-orange-600 border-2 border-orange-500 hover:bg-orange-700 text-white font-bold uppercase tracking-wider text-[10px] md:text-sm transition-all rounded whitespace-nowrap">
               Save Deck
             </button>
           </div>
@@ -195,6 +217,13 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
             className="bg-black text-white p-2 rounded border border-gray-700 min-w-[200px]"
           >
             <option value="new">-- Buat Deck Baru --</option>
+            <option disabled>────── Starter Decks ──────</option>
+            <option value="starter-1">Karasuno Starter</option>
+            <option value="starter-2">Rivals Starter</option>
+            <option value="starter-3">Karasuno Evo Starter</option>
+            <option value="starter-4">Aoba Johsai Starter</option>
+            <option value="starter-5">Fukurodani Starter</option>
+            {customDecks.length > 0 && <option disabled>────── Custom Decks ──────</option>}
             {customDecks.map(d => (
               <option key={d.id} value={d.id}>{d.name} {d.isValid ? "(Valid)" : "(Draft)"}</option>
             ))}
@@ -220,13 +249,74 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-y-auto md:overflow-hidden min-h-0">
-        {/* Kolom Kiri: Detail Panel */}
-        <div className="w-full md:w-1/4 lg:w-1/5 bg-neutral-900 border border-gray-800 rounded p-4 flex flex-col min-h-0 md:min-h-0 overflow-y-auto shrink-0 md:shrink">
-          <h3 className="text-base md:text-lg font-bold text-gray-300 mb-3 border-b border-gray-700 pb-2">
-            Card Detail
-          </h3>
-          {selectedCard ? (
+      {/* Header Deck Builder (Mobile - Mockup Layout) */}
+      <div className="md:hidden flex flex-col shrink-0 gap-2 w-full mt-2">
+        <div className="grid grid-cols-3 gap-2">
+          <button onClick={() => onNavigate("menu")} className="py-2 bg-neutral-800 border-2 border-gray-700 text-white hover:text-orange-500 font-bold text-[10px] sm:text-xs">
+            Back To Menu
+          </button>
+          <button onClick={handleExport} className="py-2 bg-neutral-800 border-2 border-gray-700 text-white hover:text-blue-500 font-bold text-[10px] sm:text-xs">
+            Export
+          </button>
+          <button onClick={handleImport} className="py-2 bg-neutral-800 border-2 border-gray-700 text-white hover:text-purple-500 font-bold text-[10px] sm:text-xs">
+            Import
+          </button>
+          <button onClick={handleSaveDeck} className="py-2 bg-neutral-800 border-2 border-gray-700 text-white hover:text-orange-500 font-bold text-[10px] sm:text-xs">
+            Save
+          </button>
+          <button onClick={handleDeleteDeck} disabled={activeDeckId === "new" || activeDeckId.startsWith("starter-")} className="py-2 bg-neutral-800 border-2 border-gray-700 text-white hover:text-red-500 font-bold text-[10px] sm:text-xs disabled:opacity-50">
+            Delete
+          </button>
+          <div className="relative">
+            <select 
+              value={activeDeckId}
+              onChange={handleLoadDeck}
+              className="w-full h-full py-2 bg-neutral-800 border-2 border-gray-700 text-white hover:text-orange-500 font-bold text-[10px] sm:text-xs appearance-none px-2 pr-6"
+            >
+              <option value="new">Buat Deck</option>
+              <option disabled>── Starter ──</option>
+              <option value="starter-1">Karasuno</option>
+              <option value="starter-2">Rivals</option>
+              <option value="starter-3">Karasuno Evo</option>
+              <option value="starter-4">Aoba Johsai</option>
+              <option value="starter-5">Fukurodani</option>
+              {customDecks.length > 0 && <option disabled>── Custom ──</option>}
+              {customDecks.map(d => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-1 flex items-center px-1 text-white text-[10px]">
+              ▼
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col-reverse md:flex-row gap-0 md:gap-4 overflow-y-auto md:overflow-hidden min-h-0 md:pb-0">
+        {/* Kolom Kiri: Detail Panel (Modal on Mobile) */}
+        <div 
+          className={`
+            ${showMobileDetail ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm' : 'hidden'}
+            md:static md:z-auto md:flex w-full md:w-1/4 lg:w-1/5 md:bg-neutral-900 md:border md:border-gray-800 md:rounded md:p-4 md:flex-col md:min-h-0 overflow-y-auto shrink-0 md:shrink
+          `}
+          onClick={() => setShowMobileDetail(false)}
+        >
+          <div 
+            className="w-full max-w-xs md:max-w-none bg-neutral-900 border border-gray-800 rounded-lg p-4 flex flex-col max-h-[90vh] md:max-h-none overflow-y-auto shrink-0 md:shrink shadow-2xl md:shadow-none md:border-0 md:bg-transparent md:p-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
+              <h3 className="text-base md:text-lg font-bold text-gray-300">
+                Card Detail
+              </h3>
+              <button 
+                onClick={() => setShowMobileDetail(false)} 
+                className="md:hidden text-gray-400 hover:text-white font-bold p-1 leading-none"
+              >
+                ✕
+              </button>
+            </div>
+            {selectedCard ? (
             <div className="flex flex-col gap-2">
               <img 
                 src={selectedCard.image} 
@@ -277,14 +367,15 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-600 italic text-sm text-center">
+            <div className="flex-1 flex items-center justify-center text-gray-600 italic text-sm text-center min-h-[200px] md:min-h-0">
               Click a card to see details
             </div>
           )}
+          </div>
         </div>
 
-        <div className="flex-[1.5] bg-neutral-900 border border-gray-800 rounded p-4 flex flex-col min-h-0">
-          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-3 border-b border-gray-700 pb-2 gap-2">
+        <div className="flex-[1.5] bg-neutral-900 border-t-2 border-gray-800 md:border md:rounded md:p-4 flex flex-col min-h-0">
+          <div className="hidden md:flex flex-col xl:flex-row justify-between items-start xl:items-center mb-3 border-b border-gray-700 pb-2 gap-2 shrink-0">
             <h3 className="text-base md:text-lg font-bold text-gray-300">
               Card Pool
             </h3>
@@ -305,24 +396,53 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                 <option value="Karasuno">HVD-01 (Karasuno)</option>
                 <option value="Rivals">HVD-02 (Rivals)</option>
                 <option value="KarasunoEvo">HVD-03 (Karasuno Evo)</option>
-                <option value="Aoba">HVD-04 (Aoba JÅsai)</option>
-                <option value="Fukurodani">HVD-05 (FukurÅdani)</option>
+                <option value="Aoba">HVD-04 (Aoba Jōsai)</option>
+                <option value="Fukurodani">HVD-05 (Fukurōdani)</option>
                 <option value="Character">Character Saja</option>
                 <option value="Action">Action Saja</option>
               </select>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto content-start pr-2 scrollbar-minimalist">
+
+          {/* Card Pool Header Mobile */}
+          <div className="md:hidden flex justify-between items-center bg-neutral-900 border-b-2 border-gray-800 p-2 shrink-0 gap-2">
+            <input
+              type="text"
+              placeholder="Search Bar"
+              value={deckBuilderSearch}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="bg-transparent text-gray-300 font-bold text-lg placeholder-gray-500 focus:outline-none flex-1 min-w-0"
+            />
+            <select
+              value={deckBuilderFilter}
+              onChange={(e) => onFilterChange(e.target.value)}
+              className="bg-transparent text-gray-300 font-bold text-lg focus:outline-none text-right appearance-none"
+            >
+              <option value="All">Filter</option>
+              <option value="Karasuno">Karasuno</option>
+              <option value="Rivals">Rivals</option>
+              <option value="KarasunoEvo">Karasuno Evo</option>
+              <option value="Aoba">Aoba Josai</option>
+              <option value="Fukurodani">Fukurodani</option>
+              <option value="Character">Character</option>
+              <option value="Action">Action</option>
+            </select>
+          </div>
+
+          <div className="flex-1 overflow-y-auto content-start p-2 md:p-0 md:pr-2 scrollbar-minimalist">
             {filteredCharacters.length > 0 && (
               <div className="mb-6">
                 <h4 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                   Characters
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-1.5 md:gap-3">
                   {filteredCharacters.map((card) => (
                     <div
                       key={card.id}
-                      onClick={() => setSelectedCard(card)}
+                      onClick={() => {
+                        setSelectedCard(card);
+                        setShowMobileDetail(true);
+                      }}
                       className={`aspect-[2/3] bg-neutral-800 border-2 ${selectedCard?.id === card.id ? 'border-orange-500' : 'border-gray-700'} rounded hover:border-orange-400 cursor-pointer flex flex-col items-center justify-center p-2 text-center transition-colors group relative overflow-hidden`}
                       title="Click to view details"
                       style={{
@@ -340,6 +460,12 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                         {card.stats?.attack ?? 0}/B{card.stats?.block ?? 0}
                       </div>
                       <div className="absolute inset-0 bg-orange-500/0 group-hover:bg-orange-500/10 transition-colors rounded"></div>
+                      
+                      {builderDeck.filter(c => c.name === card.name).length > 0 && (
+                        <div className="absolute bottom-0 left-0 bg-slate-700/90 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-tr-lg border-t border-r border-gray-500 shadow-sm">
+                          {builderDeck.filter(c => c.name === card.name).length}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -351,11 +477,14 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                 <h4 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">
                   Actions
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-1.5 md:gap-3">
                   {filteredEvents.map((card) => (
                     <div
                       key={card.id}
-                      onClick={() => setSelectedCard(card)}
+                      onClick={() => {
+                        setSelectedCard(card);
+                        setShowMobileDetail(true);
+                      }}
                       className={`aspect-[3/2] bg-neutral-800 border-2 ${selectedCard?.id === card.id ? 'border-orange-500' : 'border-gray-700'} rounded hover:border-orange-400 cursor-pointer flex flex-col items-center justify-center p-2 text-center transition-colors group relative overflow-hidden`}
                       title="Click to view details"
                       style={{
@@ -369,6 +498,12 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                         {card.name}
                       </div>
                       <div className="absolute inset-0 bg-orange-500/0 group-hover:bg-orange-500/10 transition-colors rounded"></div>
+                      
+                      {builderDeck.filter(c => c.name === card.name).length > 0 && (
+                        <div className="absolute bottom-0 left-0 bg-slate-700/90 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-tr-lg border-t border-r border-gray-500 shadow-sm">
+                          {builderDeck.filter(c => c.name === card.name).length}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -384,21 +519,22 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
         </div>
 
         {/* Kolom Kanan: Your Deck */}
-        <div className="w-full md:w-1/4 lg:w-1/4 bg-neutral-900 border border-gray-800 rounded p-4 flex flex-col min-h-0">
-          <div className="flex justify-between items-center mb-3 border-b border-gray-700 pb-2 shrink-0">
-            <h3 className="text-base md:text-lg font-bold text-gray-300">
+        <div className="flex-1 md:flex-none w-full md:w-1/4 lg:w-1/4 bg-neutral-900 border-t-2 border-gray-800 md:border md:border-gray-800 md:rounded md:p-4 flex flex-col min-h-0">
+          <div className="flex justify-between items-center bg-neutral-900 md:bg-transparent border-b-2 border-gray-800 md:border-gray-700 p-2 md:p-0 md:mb-3 md:pb-2 shrink-0">
+            <h3 className="text-lg md:text-lg font-bold text-gray-300">
               Your Deck
             </h3>
             <span
-              className={`text-xs md:text-sm font-mono font-bold ${
+              className={`text-lg md:text-sm font-bold md:font-mono ${
                 builderDeck.length >= 40 ? "text-orange-500" : "text-gray-400"
               }`}
             >
-              Total Cards: {builderDeck.length}/40
+              <span className="md:hidden">{builderDeck.length}/40</span>
+              <span className="hidden md:inline">Total Cards: {builderDeck.length}/40</span>
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-black/50 border border-gray-800 rounded p-3 content-start scrollbar-minimalist">
+          <div className="flex-1 overflow-y-auto bg-black/50 md:border md:border-gray-800 md:rounded p-2 md:p-3 content-start scrollbar-minimalist">
             {builderDeck.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center text-gray-600 italic text-sm text-center p-4">
                 Click cards from the pool to add them to your deck.
@@ -410,12 +546,15 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                     <h4 className="text-xs font-bold text-gray-500 mb-2 uppercase">
                       Characters ({deckCharacters.length})
                     </h4>
-                    <div className="flex flex-wrap gap-2 items-start">
+                    <div className="grid grid-cols-5 md:flex md:flex-wrap gap-1 md:gap-2 items-start">
                       {deckCharacters.map((card, index) => (
                         <div
                           key={`char-${card.id}-${index}`}
-                          onClick={() => setSelectedCard(card)}
-                          className={`w-14 md:w-16 aspect-[2/3] bg-neutral-800 border ${selectedCard?.id === card.id ? 'border-orange-500' : 'border-gray-600'} rounded hover:border-orange-400 cursor-pointer flex flex-col items-center justify-center p-1 text-center transition-colors relative overflow-hidden shrink-0`}
+                          onClick={() => {
+                            setSelectedCard(card);
+                            setShowMobileDetail(true);
+                          }}
+                          className={`w-full md:w-16 aspect-[2/3] bg-neutral-800 border ${selectedCard?.id === card.id ? 'border-orange-500' : 'border-gray-600'} rounded hover:border-orange-400 cursor-pointer flex flex-col items-center justify-center p-1 text-center transition-colors relative overflow-hidden shrink-0`}
                           title="Click to view details"
                           style={{
                             backgroundImage: `url('${encodeURI(card.image)}')`,
@@ -438,12 +577,15 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                     <h4 className="text-xs font-bold text-gray-500 mb-2 uppercase">
                       Actions ({deckEvents.length})
                     </h4>
-                    <div className="flex flex-wrap gap-2 items-start">
+                    <div className="grid grid-cols-4 md:flex md:flex-wrap gap-1 md:gap-2 items-start">
                       {deckEvents.map((card, index) => (
                         <div
                           key={`event-${card.id}-${index}`}
-                          onClick={() => setSelectedCard(card)}
-                          className={`w-20 md:w-24 aspect-[3/2] bg-neutral-800 border ${selectedCard?.id === card.id ? 'border-orange-500' : 'border-gray-600'} rounded hover:border-orange-400 cursor-pointer flex flex-col items-center justify-center p-1 text-center transition-colors relative overflow-hidden shrink-0`}
+                          onClick={() => {
+                            setSelectedCard(card);
+                            setShowMobileDetail(true);
+                          }}
+                          className={`w-full md:w-24 aspect-[3/2] bg-neutral-800 border ${selectedCard?.id === card.id ? 'border-orange-500' : 'border-gray-600'} rounded hover:border-orange-400 cursor-pointer flex flex-col items-center justify-center p-1 text-center transition-colors relative overflow-hidden shrink-0`}
                           title="Click to view details"
                           style={{
                             backgroundImage: `url('${encodeURI(card.image)}')`,

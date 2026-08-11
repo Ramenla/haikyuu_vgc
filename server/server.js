@@ -44,6 +44,7 @@ io.on('connection', (socket) => {
           id: playerId,
           name: playerName,
           deckId: null,
+          deckCards: [],
           isReady: false,
           isHost: true,
           connected: true
@@ -99,6 +100,7 @@ io.on('connection', (socket) => {
       id: playerId,
       name: playerName,
       deckId: null,
+      deckCards: [],
       isReady: false,
       isHost: false,
       connected: true
@@ -116,11 +118,12 @@ io.on('connection', (socket) => {
   });
 
   // Update Deck
-  socket.on('updateDeck', ({ roomCode, deckId }) => {
+  socket.on('updateDeck', ({ roomCode, deckId, deckCards }) => {
     const info = socketMap[socket.id];
     if (info && rooms[info.roomCode] && rooms[info.roomCode].players[info.playerId]) {
       rooms[info.roomCode].players[info.playerId].deckId = deckId;
-      socket.to(info.roomCode).emit('opponentDeckUpdated', deckId);
+      rooms[info.roomCode].players[info.playerId].deckCards = deckCards || [];
+      socket.to(info.roomCode).emit('opponentDeckUpdated', { deckId, deckCards: deckCards || [] });
     }
   });
 
@@ -173,6 +176,13 @@ io.on('connection', (socket) => {
   // Reconnecting player requests sync from opponent
   socket.on('requestSync', ({ roomCode }) => {
     socket.to(roomCode).emit('syncRequested');
+  });
+
+  socket.on('chatMessage', (messageData) => {
+    const { roomCode } = messageData;
+    if (roomCode) {
+      socket.to(roomCode).emit('chatMessage', messageData);
+    }
   });
 
   socket.on('leaveRoom', (roomCode) => {

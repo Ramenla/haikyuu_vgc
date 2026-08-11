@@ -36,3 +36,10 @@ export interface CustomDeck {
   cards: string[]; // List of card IDs
   isValid: boolean;
 };
+
+export interface ChatMessage {
+  id: string;
+  sender: "Player 1" | "Player 2" | "System";
+  text: string;
+  timestamp: number;
+}
