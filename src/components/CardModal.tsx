@@ -53,10 +53,8 @@ export const CardModal: React.FC<CardModalProps> = ({
               </p>
 
               {selectedCard.type !== "Action" && (
-                <div className="flex flex-wrap justify-start md:justify-center gap-0.5 md:gap-1 mt-0.5 md:mt-1">
-                  {selectedCard.school && <span className="text-[6px] md:text-[8px] bg-blue-900/50 text-blue-300 border border-blue-700 px-1.5 py-0.5 rounded">{selectedCard.school}</span>}
-                  {selectedCard.year && <span className="text-[6px] md:text-[8px] bg-green-900/50 text-green-300 border border-green-700 px-1.5 py-0.5 rounded">{selectedCard.year}</span>}
-                  {selectedCard.position && <span className="text-[6px] md:text-[8px] bg-purple-900/50 text-purple-300 border border-purple-700 px-1.5 py-0.5 rounded">{selectedCard.position}</span>}
+                <div className="mt-0.5 md:mt-1 text-[7px] md:text-[9px] text-gray-300 font-semibold text-left md:text-center leading-tight">
+                  {[selectedCard.school, selectedCard.year, selectedCard.position].filter(Boolean).join("/")}
                 </div>
               )}
 
