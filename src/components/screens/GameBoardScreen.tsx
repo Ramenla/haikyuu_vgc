@@ -303,6 +303,7 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
           onDeclareBreak={onDeclareBreak}
           onActivateHandEffect={onActivateHandEffect}
           pendingChoice={pendingChoice}
+          onLeaveGame={() => onNavigate("menu")}
         />
       </div>
 
@@ -595,6 +596,7 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
             onDeclareBreak={onDeclareBreak}
             onActivateHandEffect={onActivateHandEffect}
             pendingChoice={pendingChoice}
+            onLeaveGame={() => onNavigate("menu")}
           />
         </div>
 

@@ -12,6 +12,7 @@ interface CardModalProps {
   onNextPhase: () => void;
   onDeclareBreak: () => void;
   onActivateHandEffect: () => void;
+  onLeaveGame: () => void;
   pendingChoice?: any;
 }
 
@@ -26,6 +27,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   onNextPhase,
   onDeclareBreak,
   onActivateHandEffect,
+  onLeaveGame,
   pendingChoice,
 }) => {
   return (
@@ -211,6 +213,13 @@ export const CardModal: React.FC<CardModalProps> = ({
             }`}
           >
             Break
+          </button>
+          
+          <button
+            onClick={onLeaveGame}
+            className="md:hidden mt-2 w-full py-1.5 px-1 rounded font-bold text-[8px] uppercase tracking-wider transition-all border bg-neutral-800 text-red-500 hover:text-red-400 border-red-900/50 hover:border-red-500"
+          >
+            Leave Game
           </button>
         </div>
       )}
