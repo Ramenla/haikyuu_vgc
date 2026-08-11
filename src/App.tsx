@@ -980,7 +980,7 @@ export default function App() {
   };
 
   const startGame = (overrideDeckType?: string, opponentDeckType?: string) => {
-    const deckTypeToUse = overrideDeckType || selectedDeckType;
+    const deckTypeToUse = (typeof overrideDeckType === "string" ? overrideDeckType : null) || selectedDeckType;
     let newDeck: CardInstance[] = [];
     let poolKartu: CardData[] = [];
 

@@ -112,7 +112,7 @@ export const DeckSelectionScreen: React.FC<DeckSelectionScreenProps> = ({
         </button>
         <button
           disabled={!selectedDeckType}
-          onClick={onStartGame}
+          onClick={() => onStartGame()}
           className={`px-8 py-3 rounded font-black text-xl tracking-widest uppercase transition-colors ${
             selectedDeckType
               ? "bg-orange-600 border border-orange-500 hover:bg-orange-700 text-white cursor-pointer"

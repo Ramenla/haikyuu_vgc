@@ -31,7 +31,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   pendingChoice,
 }) => {
   return (
-    <div 
+    <div
       onClick={(e) => e.stopPropagation()}
       className="w-full md:w-[185px] bg-neutral-900 border border-gray-800 rounded-lg p-1.5 md:p-2 flex flex-row md:flex-col justify-start shrink-0 h-fit max-h-[140px] md:max-h-none md:h-full overflow-hidden shadow-xl box-border gap-1.5 md:gap-0"
     >
@@ -137,7 +137,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                     className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all ${isPlayValid ? "bg-orange-600 hover:bg-orange-500 text-white border border-orange-500" : "bg-neutral-800 text-gray-600 border border-gray-700 cursor-not-allowed"
                       }`}
                   >
-                    {currentTurn === "Player 1" ? (isPlayValid ? "Selesaikan Fase" : "Mainkan") : "Tunggu"}
+                    {currentTurn === "Player 1" ? (isPlayValid ? "End Phase" : "End Phase") : "Tunggu"}
                   </button>
                 );
 
@@ -183,6 +183,16 @@ export const CardModal: React.FC<CardModalProps> = ({
                   </button>
                 );
 
+                buttons.push(
+                  <button
+                    key="leave_game"
+                    onClick={onLeaveGame}
+                    className="md:hidden mt-0.5 w-full py-1.5 px-1 rounded font-bold text-[8px] uppercase tracking-wider transition-all border bg-neutral-800 text-red-500 hover:text-red-400 border-red-900/50 hover:border-red-500"
+                  >
+                    Leave Game
+                  </button>
+                );
+
                 return buttons;
               })()}
             </div>
@@ -202,22 +212,20 @@ export const CardModal: React.FC<CardModalProps> = ({
           <button
             onClick={onNextPhase}
             disabled={!isPlayValid}
-            className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all border ${
-              isPlayValid ? "bg-orange-600 hover:bg-orange-500 text-white border-orange-500" : "bg-neutral-800 text-gray-600 border-gray-700 cursor-not-allowed"
-            }`}
+            className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all border ${isPlayValid ? "bg-orange-600 hover:bg-orange-500 text-white border-orange-500" : "bg-neutral-800 text-gray-600 border-gray-700 cursor-not-allowed"
+              }`}
           >
-            {currentTurn === "Player 1" ? (isPlayValid ? "Selesaikan Fase" : "Mainkan") : "Tunggu"}
+            {currentTurn === "Player 1" ? (isPlayValid ? "End Phase" : "End Phase") : "Tunggu"}
           </button>
           <button
             onClick={onDeclareBreak}
             disabled={currentTurn !== "Player 1"}
-            className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all border ${
-              currentTurn === "Player 1" ? "bg-white hover:bg-gray-200 text-black border-gray-300" : "bg-neutral-800 text-gray-600 border-gray-700 cursor-not-allowed"
-            }`}
+            className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all border ${currentTurn === "Player 1" ? "bg-white hover:bg-gray-200 text-black border-gray-300" : "bg-neutral-800 text-gray-600 border-gray-700 cursor-not-allowed"
+              }`}
           >
             Break
           </button>
-          
+
           <button
             onClick={onLeaveGame}
             className="md:hidden mt-2 w-full py-1.5 px-1 rounded font-bold text-[8px] uppercase tracking-wider transition-all border bg-neutral-800 text-red-500 hover:text-red-400 border-red-900/50 hover:border-red-500"
