@@ -58,7 +58,14 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
   const isDefendingChoice = currentPhase === "Defense Choice Phase" && pendingChoice;
   const logEndRef = useRef<HTMLDivElement>(null);
 
-  const [isMobileLogOpen, setIsMobileLogOpen] = useState(false);
+  const [activeMobileMenu, setActiveMobileMenu] = useState<"log" | "chat" | null>(null);
+  const mobileLogEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeMobileMenu === "log" && mobileLogEndRef.current) {
+      mobileLogEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [gameLogs, activeMobileMenu]);
 
   useEffect(() => {
     if (logEndRef.current) {
@@ -283,7 +290,7 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
     <div className="h-screen w-screen bg-black text-gray-200 font-sans p-2 flex flex-col md:flex-row gap-2 overflow-hidden box-border">
       {/* Panel Kiri: Detail Kartu Penuh */}
       
-      <div className="w-full md:w-auto h-auto md:h-full flex-shrink-0 flex order-last md:order-none z-[60] overflow-hidden md:overflow-visible">
+      <div className="hidden md:flex w-full md:w-auto h-auto md:h-full flex-shrink-0 flex-col order-last md:order-none z-[60] overflow-hidden md:overflow-visible">
         <CardModal
           selectedCard={selectedCard}
           pendingEffectCard={pendingEffectCard}
@@ -303,48 +310,46 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
       {renderPhaseIndicator()}
 
       {/* Panel Tengah: Area Papan Permainan */}
-      <div className="flex-1 flex flex-col gap-1.5 items-center justify-center overflow-hidden w-full h-full relative">
+      <div className="flex-1 flex flex-col gap-1.5 items-center justify-start overflow-y-auto overflow-x-hidden scrollbar-none w-full h-full relative pb-2 pt-1">
         {/* MOBILE TOP BAR */}
-        <div className="md:hidden flex w-full max-w-[480px] gap-1 items-center justify-between bg-neutral-900 border border-gray-800 p-1.5 rounded-lg shrink-0 z-10 overflow-x-auto scrollbar-none">
-          <div className="flex flex-col items-center justify-center bg-black/50 px-2 py-1 rounded shrink-0">
-            <span className="text-[8px] font-bold text-gray-400 uppercase">P2 Hand</span>
-            <span className="font-black text-orange-500 text-xs leading-none">{activeCards.filter((c) => c.location === "bot_hand").length}</span>
+        <div className="md:hidden flex flex-col w-full max-w-[480px] gap-1 shrink-0 z-10 mt-1">
+          {/* Row 1: Turn Phase Indicator */}
+          <div className="bg-neutral-900 border-2 border-gray-700 rounded-sm py-1.5 px-2 text-center w-full shadow-md">
+             <span className="font-black text-white text-[12px] uppercase tracking-wider">
+               {currentTurn === "Player 1" ? "Giliranmu" : "Giliran Lawan"} - {currentPhase === "Toss Phase" ? "Set Phase" : currentPhase.replace(" Phase", "")}
+             </span>
           </div>
-          <div className="flex-1 flex items-center justify-center gap-1 min-w-max px-2">
-            {(() => {
-              let phases = [];
-              if (currentPhase === "Serve Phase") {
-                phases = ["Serve Phase", "End Phase"];
-              } else if (currentPhase === "Block Phase") {
-                phases = ["Start Phase", "Block Phase", "End Phase"];
-              } else {
-                phases = ["Start Phase", "Draw Phase", "Receive Phase", "Set Phase", "Attack Phase", "End Phase"];
-              }
-              return phases.map((phase, index) => {
-                const mappedCurrentPhase = currentPhase === "Toss Phase" ? "Set Phase" : currentPhase;
-                const isActive = !pendingChoice && phase === mappedCurrentPhase;
-                return (
-                  <React.Fragment key={phase}>
-                    <div className={`px-1.5 py-0.5 text-center rounded border font-black text-[8px] uppercase tracking-wider transition-all duration-300 ${
-                        isActive ? 'bg-orange-500 border-orange-700 text-white scale-105 shadow-md' : 'bg-black border-gray-800 text-gray-500'
-                      }`}>
-                      {phase === "Start Phase" ? "Start" : phase.replace(" Phase", "")}
-                    </div>
-                    {index < phases.length - 1 && (
-                      <div className={`text-[8px] ${isActive ? 'text-orange-500' : 'text-gray-700'}`}>▶</div>
-                    )}
-                  </React.Fragment>
-                );
-              });
-            })()}
-          </div>
-          <div className="flex flex-col items-center justify-center bg-black/50 px-2 py-1 rounded shrink-0">
-            <span className="text-[8px] font-bold text-gray-400 uppercase">P1 Hand</span>
-            <span className="font-black text-orange-500 text-xs leading-none">{activeCards.filter((c) => c.location === "hand").length}</span>
+
+          {/* Row 2: Stats & Hands */}
+          <div className="flex gap-1 w-full">
+             <div className="flex-1 bg-neutral-900 border-2 border-gray-700 rounded-sm py-1.5 px-2 flex justify-around items-center shadow-md">
+                <div className="flex flex-col items-center">
+                  <span className="text-[7px] text-gray-400 font-bold uppercase mb-0.5">Incoming</span>
+                  <span className="text-[11px] font-black text-red-500 leading-none">{points.incomingAttack}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-[7px] text-gray-400 font-bold uppercase mb-0.5">Defense</span>
+                  <span className="text-[11px] font-black text-blue-500 leading-none">{points.defense}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-[7px] text-gray-400 font-bold uppercase mb-0.5">Attack</span>
+                  <span className="text-[11px] font-black text-orange-500 leading-none">{points.attack}</span>
+                </div>
+             </div>
+             <div className="flex-1 bg-neutral-900 border-2 border-gray-700 rounded-sm py-1.5 px-2 flex justify-around items-center shadow-md">
+                <div className="flex flex-col items-center">
+                  <span className="text-[7px] text-gray-400 font-bold uppercase mb-0.5">P1 Hand</span>
+                  <span className="text-[11px] font-black text-white leading-none">{activeCards.filter((c) => c.location === "hand").length}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-[7px] text-gray-400 font-bold uppercase mb-0.5">P2 Hand</span>
+                  <span className="text-[11px] font-black text-white leading-none">{activeCards.filter((c) => c.location === "bot_hand").length}</span>
+                </div>
+             </div>
           </div>
         </div>
         {/* Scale wrapper for mobile */}
-        <div className="transform scale-[0.65] sm:scale-75 md:scale-100 flex flex-col gap-1.5 min-w-[480px] items-center justify-center origin-center">
+        <div className="transform scale-[0.65] sm:scale-[0.75] md:scale-100 flex flex-col gap-1.5 min-w-[480px] items-center justify-start origin-top -mb-[200px] sm:-mb-[140px] md:mb-0 mt-4 shrink-0">
         {/* Zona Lawan */}
         <div className="w-full max-w-[480px] flex-shrink-0 grid grid-cols-5 gap-1 transform rotate-180 bg-neutral-900/40 border border-gray-800 rounded-lg p-1.5 place-content-center place-items-center">
           <div className="row-span-2 flex flex-col gap-1 justify-center h-full">
@@ -592,17 +597,74 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
             pendingChoice={pendingChoice}
           />
         </div>
+
+        {/* MOBILE LOG & CHAT BUTTONS */}
+        <div className="md:hidden flex w-full max-w-[480px] gap-2 mt-auto shrink-0 px-2 pb-2 relative">
+          <button 
+            onClick={() => setActiveMobileMenu(prev => prev === "log" ? null : "log")}
+            className="flex-1 bg-neutral-300 hover:bg-neutral-400 text-black font-bold py-1 px-2 text-[9px] rounded border-2 border-neutral-400 shadow-[0_0_10px_rgba(0,0,0,0.5)] flex justify-between items-center transition-colors z-[101]"
+          >
+            <span>Log Game</span>
+            <span className="text-[9px]">{activeMobileMenu === "log" ? "▼" : "▲"}</span>
+          </button>
+          <button 
+            onClick={() => setActiveMobileMenu(prev => prev === "chat" ? null : "chat")}
+            className="flex-1 bg-neutral-300 hover:bg-neutral-400 text-black font-bold py-1 px-2 text-[9px] rounded border-2 border-neutral-400 shadow-[0_0_10px_rgba(0,0,0,0.5)] flex justify-between items-center transition-colors z-[101]"
+          >
+            <span>Chat</span>
+            <span className="text-[9px]">{activeMobileMenu === "chat" ? "▼" : "▲"}</span>
+          </button>
+
+          {/* MOBILE DROP-UP CONTENT */}
+          {activeMobileMenu && (
+            <div className="absolute bottom-full left-2 right-2 mb-2 h-[200px] bg-neutral-900 border border-gray-700 rounded-lg shadow-2xl z-[100] flex flex-col overflow-hidden animate-slide-up">
+              <div className="flex justify-between items-center bg-neutral-800 px-3 py-1.5 border-b border-gray-700">
+                <span className="font-bold text-[10px] text-gray-300 uppercase tracking-wider">
+                  {activeMobileMenu === "log" ? "Log Game" : "Chat Area"}
+                </span>
+                <button onClick={() => setActiveMobileMenu(null)} className="text-gray-400 hover:text-white">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-2 scrollbar-minimalist bg-black/50">
+                {activeMobileMenu === "log" && (
+                  <div className="font-mono text-[9px] text-gray-400 leading-relaxed space-y-1">
+                    {gameLogs.length === 0 ? (
+                      <div className="text-gray-600">&gt; Menunggu pertandingan...</div>
+                    ) : (
+                      gameLogs.map((log, i) => (
+                        <div key={i} className="border-b border-gray-800 pb-1">
+                          &gt; {log}
+                        </div>
+                      ))
+                    )}
+                    <div ref={mobileLogEndRef} />
+                  </div>
+                )}
+                
+                {activeMobileMenu === "chat" && (
+                  <div className="flex flex-col h-full">
+                    <div className="flex-1 overflow-y-auto text-[10px] text-gray-400">
+                      <div className="text-gray-600 text-center italic mt-2">Chat system is not yet active</div>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Ketik pesan..."
+                      className="bg-black border border-gray-700 rounded p-1.5 text-[10px] text-white focus:outline-none focus:border-orange-500 transition-colors mt-2 shrink-0 w-full"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile Overlay for Right Panel */}
-      {isMobileLogOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black/60 z-[90]" 
-          onClick={() => setIsMobileLogOpen(false)} 
-        />
-      )}
+      {/* Mobile overlay no longer used for Right Panel */}
       {/* Panel Kanan: Menu dan Indikator */}
-      <div className={`${isMobileLogOpen ? "fixed right-2 top-2 bottom-2 z-[100]" : "hidden md:flex"} w-[200px] bg-neutral-900/95 md:bg-transparent flex-col gap-2 shrink-0 h-full p-2 md:p-0 rounded-lg md:rounded-none overflow-y-auto`}>
+      <div className="hidden md:flex w-[200px] bg-neutral-900/95 md:bg-transparent flex-col gap-2 shrink-0 h-full p-2 md:p-0 rounded-lg md:rounded-none overflow-y-auto">
         <button
           onClick={() => onNavigate("menu")}
           className="bg-neutral-800 border-2 border-gray-700 hover:border-orange-500 hover:text-orange-500 text-white font-bold py-2 px-3 rounded transition-colors text-xs shrink-0"
@@ -721,16 +783,7 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
           </div>
         </div>
       )}
-      {/* Mobile Floating Buttons */}
-      
-      <div className="md:hidden fixed bottom-4 right-4 z-50">
-        <button 
-          onClick={() => setIsMobileLogOpen(!isMobileLogOpen)}
-          className="w-12 h-12 bg-neutral-700 rounded-full flex items-center justify-center text-white border-2 border-gray-500 shadow-[0_0_15px_rgba(0,0,0,0.5)] font-bold text-xs"
-        >
-          Log
-        </button>
-      </div>
+      {/* Mobile Floating Buttons removed */}
 
     </div>
   );
