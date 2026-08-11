@@ -78,7 +78,7 @@ export const DeckSelectionScreen: React.FC<DeckSelectionScreenProps> = ({
           Choose Your Deck
         </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6 w-full overflow-y-auto flex-1 pr-2 custom-scrollbar">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6 w-full overflow-y-auto flex-1 pr-2 custom-scrollbar content-start">
         {decks.map(
           (deck) => (
             <div

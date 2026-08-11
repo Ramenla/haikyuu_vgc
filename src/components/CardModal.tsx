@@ -1,5 +1,5 @@
 import React from "react";
-import { CardData, CardInstance } from "../../types/card";
+import { CardData, CardInstance } from "../types/card";
 
 interface CardModalProps {
   selectedCard: CardData | CardInstance | null;
@@ -44,7 +44,7 @@ export const CardModal: React.FC<CardModalProps> = ({
           </div>
 
           <div className="flex-1 flex flex-row md:flex-col gap-1.5 md:gap-0 min-w-0">
-            <div className="w-[70px] md:w-auto text-center md:mt-2 shrink-0 flex flex-col md:block">
+            <div className="w-[85px] md:w-auto text-center md:mt-2 shrink-0 flex flex-col md:block">
               <h2 className="text-white font-bold text-[11px] md:text-sm leading-tight truncate md:whitespace-normal">
                 {selectedCard.name}
               </h2>
@@ -61,26 +61,26 @@ export const CardModal: React.FC<CardModalProps> = ({
               )}
 
               {selectedCard.type !== "Action" && selectedCard.stats && (
-                <div className="flex flex-col md:flex-row md:justify-between mt-1 md:mt-2 gap-0.5 md:gap-0">
-                  <div className="flex justify-between md:flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-1 md:px-0">
-                    <span className="text-[7px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Receive</span>
-                    <span className="text-[9px] md:text-sm font-bold text-white">{selectedCard.stats.receive}</span>
+                <div className="grid grid-cols-2 md:flex md:flex-row md:justify-between mt-1 md:mt-2 gap-0.5 md:gap-0">
+                  <div className="flex flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-0.5 md:px-0">
+                    <span className="text-[6px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Receive</span>
+                    <span className="text-[9px] md:text-sm font-bold text-white leading-none">{selectedCard.stats.receive}</span>
                   </div>
-                  <div className="flex justify-between md:flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-1 md:px-0">
-                    <span className="text-[7px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Toss</span>
-                    <span className="text-[9px] md:text-sm font-bold text-white">{selectedCard.stats.toss}</span>
+                  <div className="flex flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-0.5 md:px-0">
+                    <span className="text-[6px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Toss</span>
+                    <span className="text-[9px] md:text-sm font-bold text-white leading-none">{selectedCard.stats.toss}</span>
                   </div>
-                  <div className="flex justify-between md:flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-1 md:px-0">
-                    <span className="text-[7px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Attack</span>
-                    <span className="text-[9px] md:text-sm font-bold text-white">{selectedCard.stats.attack}</span>
+                  <div className="flex flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-0.5 md:px-0">
+                    <span className="text-[6px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Attack</span>
+                    <span className="text-[9px] md:text-sm font-bold text-white leading-none">{selectedCard.stats.attack}</span>
                   </div>
-                  <div className="flex justify-between md:flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-1 md:px-0">
-                    <span className="text-[7px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Block</span>
-                    <span className="text-[9px] md:text-sm font-bold text-white">{selectedCard.stats.block}</span>
+                  <div className="flex flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-0.5 md:px-0">
+                    <span className="text-[6px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Block</span>
+                    <span className="text-[9px] md:text-sm font-bold text-white leading-none">{selectedCard.stats.block}</span>
                   </div>
-                  <div className="flex justify-between md:flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-1 md:px-0">
-                    <span className="text-[7px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Serve</span>
-                    <span className="text-[9px] md:text-sm font-bold text-white">{selectedCard.stats.serve}</span>
+                  <div className="col-span-2 md:col-span-1 flex flex-col items-center border border-gray-700 bg-black md:border-transparent md:bg-transparent rounded p-0.5 md:p-0 px-0.5 md:px-0">
+                    <span className="text-[6px] md:text-[9px] text-gray-400 font-bold uppercase md:normal-case">Serve</span>
+                    <span className="text-[9px] md:text-sm font-bold text-white leading-none">{selectedCard.stats.serve}</span>
                   </div>
                 </div>
               )}
@@ -95,7 +95,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               </p>
             </div>
 
-            <div className="w-[85px] md:w-auto flex flex-col gap-1 md:gap-1.5 justify-center md:justify-start md:mt-2 shrink-0">
+            <div className="w-[75px] md:w-auto flex flex-col gap-1 md:gap-1.5 justify-center md:justify-start md:mt-2 shrink-0">
               {(() => {
                 if (pendingChoice) {
                   return (
