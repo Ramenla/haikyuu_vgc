@@ -32,19 +32,31 @@ export const CardModal: React.FC<CardModalProps> = ({
     <div className="w-full md:w-[185px] bg-neutral-900 border border-gray-800 rounded-lg p-1.5 md:p-2 flex flex-row md:flex-col justify-start shrink-0 h-fit max-h-[140px] md:max-h-none md:h-full overflow-hidden shadow-xl box-border gap-1.5 md:gap-0">
       {selectedCard ? (
         <>
-          <div className="w-[85px] md:w-[130px] mx-auto relative group shrink-0">
-            <img
-              src={encodeURI(selectedCard.image)}
-              alt={selectedCard.name}
-              className="w-full h-auto rounded border border-gray-700 group-hover:scale-105 transition-transform duration-300"
-            />
-            <span className="absolute top-1 left-1 text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded border border-gray-700 pointer-events-none">
-              {selectedCard.type}
-            </span>
+          <div className={`${selectedCard.type === "Action" ? "w-[110px]" : "w-[85px]"} md:w-[130px] mx-auto relative group shrink-0 flex flex-col justify-end`}>
+            {selectedCard.type === "Action" && (
+              <div className="md:hidden text-center mb-1">
+                <h2 className="text-white font-bold text-[11px] leading-tight truncate">
+                  {selectedCard.name}
+                </h2>
+                <p className="text-gray-400 text-[8px] font-mono mt-0.5">
+                  {selectedCard.id}
+                </p>
+              </div>
+            )}
+            <div className="relative">
+              <img
+                src={encodeURI(selectedCard.image)}
+                alt={selectedCard.name}
+                className="w-full h-auto rounded border border-gray-700 group-hover:scale-105 transition-transform duration-300"
+              />
+              <span className="absolute top-1 left-1 text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded border border-gray-700 pointer-events-none">
+                {selectedCard.type}
+              </span>
+            </div>
           </div>
 
           <div className="flex-1 flex flex-row md:flex-col gap-1.5 md:gap-0 min-w-0">
-            <div className="w-[85px] md:w-auto text-center md:mt-2 shrink-0 flex flex-col md:block">
+            <div className={`w-[85px] md:w-auto text-center md:mt-2 shrink-0 flex flex-col md:block ${selectedCard.type === "Action" ? "hidden md:block" : ""}`}>
               <h2 className="text-white font-bold text-[11px] md:text-sm leading-tight truncate md:whitespace-normal">
                 {selectedCard.name}
               </h2>
