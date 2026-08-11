@@ -1433,7 +1433,7 @@ export default function App() {
         break;
 
       case "oikawaHVD04":
-        const isItsAllRight = activeCards.some(c => c.location === (playerType === "Player 1" ? "action" : "bot_action") && c.name === "It's all right");
+        const isItsAllRight = activeCards.some(c => c.location === (playerType === "Player 1" ? "action" : "bot_action") && c.name === "It's all right" && !c.isGuts);
         if (isItsAllRight) {
           setPendingChoice({
             title: "Pilih stat Oikawa yang mau ditingkatkan",
@@ -1562,7 +1562,7 @@ export default function App() {
         break;
 
       case "kurooHVD05":
-        const isGetItActive = activeCards.some(c => c.location === (playerType === "Player 1" ? "action" : "bot_action") && c.name === "Get it! I have to stop it, get it!");
+        const isGetItActive = activeCards.some(c => c.location === (playerType === "Player 1" ? "action" : "bot_action") && c.name === "Get it! I have to stop it, get it!" && !c.isGuts);
         if (isGetItActive) {
           setActiveCards(prevCards => prevCards.map(c => c.instanceId === card.instanceId ? { ...c, stats: { ...c.stats, block: c.stats.block + 1 } } : c));
           setTimeout(() => performDraw(1, playerType), 0);
