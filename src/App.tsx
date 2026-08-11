@@ -2175,7 +2175,7 @@ export default function App() {
 
 
       {toastMessage && (
-        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 z-[9999] bg-black border-2 border-orange-500 text-orange-500 font-bold px-6 py-3 rounded-lg shadow-2xl transition-all duration-300">
+        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 z-[9999] bg-black border-2 border-orange-500 text-orange-500 font-bold px-4 py-2 md:px-6 md:py-3 rounded-lg shadow-2xl transition-all duration-300 text-[10px] md:text-base w-[90%] max-w-[400px] md:w-auto text-center">
           {toastMessage}
         </div>
       )}

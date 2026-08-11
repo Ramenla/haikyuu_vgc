@@ -392,14 +392,14 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                 onChange={(e) => onFilterChange(e.target.value)}
                 className="bg-neutral-800 border-2 border-gray-700 text-white px-2 py-1.5 rounded text-xs flex-1 xl:flex-none focus:outline-none focus:border-orange-500"
               >
-                <option value="All">Semua Kartu</option>
-                <option value="Karasuno">HVD-01 (Karasuno)</option>
-                <option value="Rivals">HVD-02 (Rivals)</option>
-                <option value="KarasunoEvo">HVD-03 (Karasuno Evo)</option>
-                <option value="Aoba">HVD-04 (Aoba Jōsai)</option>
-                <option value="Fukurodani">HVD-05 (Fukurōdani)</option>
-                <option value="Character">Character Saja</option>
-                <option value="Action">Action Saja</option>
+                <option value="All" className="bg-neutral-800 text-white">Semua Kartu</option>
+                <option value="Karasuno" className="bg-neutral-800 text-white">HVD-01 (Karasuno)</option>
+                <option value="Rivals" className="bg-neutral-800 text-white">HVD-02 (Rivals)</option>
+                <option value="KarasunoEvo" className="bg-neutral-800 text-white">HVD-03 (Karasuno Evo)</option>
+                <option value="Aoba" className="bg-neutral-800 text-white">HVD-04 (Aoba Jōsai)</option>
+                <option value="Fukurodani" className="bg-neutral-800 text-white">HVD-05 (Fukurōdani)</option>
+                <option value="Character" className="bg-neutral-800 text-white">Character Saja</option>
+                <option value="Action" className="bg-neutral-800 text-white">Action Saja</option>
               </select>
             </div>
           </div>
@@ -416,16 +416,16 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
             <select
               value={deckBuilderFilter}
               onChange={(e) => onFilterChange(e.target.value)}
-              className="bg-transparent text-gray-300 font-bold text-lg focus:outline-none text-right appearance-none"
+              className="bg-neutral-800 text-gray-300 font-bold text-sm px-2 py-1 rounded focus:outline-none text-center appearance-none"
             >
-              <option value="All">Filter</option>
-              <option value="Karasuno">Karasuno</option>
-              <option value="Rivals">Rivals</option>
-              <option value="KarasunoEvo">Karasuno Evo</option>
-              <option value="Aoba">Aoba Josai</option>
-              <option value="Fukurodani">Fukurodani</option>
-              <option value="Character">Character</option>
-              <option value="Action">Action</option>
+              <option value="All" className="bg-neutral-800 text-white">Filter</option>
+              <option value="Karasuno" className="bg-neutral-800 text-white">Karasuno</option>
+              <option value="Rivals" className="bg-neutral-800 text-white">Rivals</option>
+              <option value="KarasunoEvo" className="bg-neutral-800 text-white">Karasuno Evo</option>
+              <option value="Aoba" className="bg-neutral-800 text-white">Aoba Josai</option>
+              <option value="Fukurodani" className="bg-neutral-800 text-white">Fukurodani</option>
+              <option value="Character" className="bg-neutral-800 text-white">Character</option>
+              <option value="Action" className="bg-neutral-800 text-white">Action</option>
             </select>
           </div>
 
