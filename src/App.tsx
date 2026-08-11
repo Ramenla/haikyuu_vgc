@@ -1208,7 +1208,7 @@ export default function App() {
 
       case "addPowerIfGuts":
         if (card.effectValue && card.effectCostValue) {
-          const gutsCount = activeCards.filter(c => c.isGuts && (playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_"))).length;
+          const gutsCount = activeCards.filter(c => c.isGuts && c.location === zoneId).length;
           if (gutsCount >= card.effectCostValue) {
             setActiveCards((prevCards) =>
               prevCards.map((c) =>
@@ -1467,7 +1467,7 @@ export default function App() {
       case "iwaizumiHVD04":
         const tossIwa = activeCards.find(c => c.location === (playerType === "Player 1" ? "toss" : "bot_toss") && !c.isGuts);
         if (tossIwa && tossIwa.school === "Aoba Jōsai") {
-          const gutsIwa = activeCards.filter(c => c.isGuts && (playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_"))).length;
+          const gutsIwa = activeCards.filter(c => c.isGuts && c.location === zoneId).length;
           if (gutsIwa >= 3) {
             setIsOpponentLiDisabled(true);
             addLog(`Efek Iwaizumi Aktif! Lawan tidak bisa menggunakan karakter Li di Receive Area untuk giliran ini.`);
@@ -1496,7 +1496,7 @@ export default function App() {
         break;
 
       case "drawCardIfGuts":
-        const gutsCountWatari = activeCards.filter(c => c.isGuts && (playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_"))).length;
+        const gutsCountWatari = activeCards.filter(c => c.isGuts && c.location === zoneId).length;
         if (gutsCountWatari >= (card.effectCostValue || 0)) {
           setTimeout(() => performDraw(card.effectValue || 1, playerType), 0);
           addLog(`Efek Aktif! Draw ${card.effectValue} kartu.`);
