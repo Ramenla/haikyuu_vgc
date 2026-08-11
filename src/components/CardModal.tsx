@@ -32,13 +32,13 @@ export const CardModal: React.FC<CardModalProps> = ({
     <div className="w-full md:w-[185px] bg-neutral-900 border border-gray-800 rounded-lg p-1.5 md:p-2 flex flex-row md:flex-col justify-start shrink-0 h-[155px] md:h-full overflow-hidden shadow-xl box-border gap-1.5 md:gap-0">
       {selectedCard ? (
         <>
-          <div className="w-[85px] md:w-[130px] mx-auto aspect-[2/3] max-h-[140px] md:max-h-[195px] bg-black rounded border border-gray-700 overflow-hidden relative group shrink-0">
+          <div className="w-[85px] md:w-[130px] mx-auto relative group shrink-0">
             <img
               src={encodeURI(selectedCard.image)}
               alt={selectedCard.name}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-auto rounded border border-gray-700 group-hover:scale-105 transition-transform duration-300"
             />
-            <span className="absolute top-1 left-1 text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded border border-gray-700">
+            <span className="absolute top-1 left-1 text-[8px] bg-black/80 text-white px-1.5 py-0.5 rounded border border-gray-700 pointer-events-none">
               {selectedCard.type}
             </span>
           </div>
