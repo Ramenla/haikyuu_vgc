@@ -48,7 +48,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               <h2 className="text-white font-bold text-[11px] md:text-sm leading-tight truncate md:whitespace-normal">
                 {selectedCard.name}
               </h2>
-              <p className="text-gray-400 text-[8px] md:text-[9px] font-mono mt-0.5 mb-0.5 hidden md:block">
+              <p className="text-gray-400 text-[8px] md:text-[9px] font-mono mt-0.5 mb-0.5">
                 {selectedCard.id}
               </p>
 
