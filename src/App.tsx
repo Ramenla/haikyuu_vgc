@@ -12,6 +12,12 @@ import { OnlineRoomScreen } from "./components/screens/OnlineRoomScreen";
 import CardSelectionModal from "./components/CardSelectionModal";
 import { socket, connectSocket } from "./network/socket";
 
+export const playSound = (type: "draw" | "play") => {
+  const src = type === "draw" ? "/assets/ambilKartu.mp3" : "/assets/mainKartukeArea.mp3";
+  const audio = new Audio(src);
+  audio.play().catch(e => console.warn("Audio play blocked", e));
+};
+
 export default function App() {
 
   const pendingReconnect = useRef(false);
@@ -597,6 +603,9 @@ export default function App() {
 
     if (newlyDrawn.length > 0) {
       setActiveCards((cards) => [...cards, ...newlyDrawn]);
+      if (isP1) {
+        playSound("draw");
+      }
     }
   };
 
@@ -1892,6 +1901,7 @@ export default function App() {
         return [...otherCards, { ...cardToMove, location: zoneId, isEffectActive: true }];
       });
 
+      playSound("play");
       setSelectedCard(null);
 
       // --- Efek Pasif: Kenma Kozume ---
