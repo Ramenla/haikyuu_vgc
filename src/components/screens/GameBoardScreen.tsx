@@ -30,6 +30,8 @@ interface GameBoardScreenProps {
   opponentName?: string;
   chatMessages: import('../../types/game').ChatMessage[];
   onSendMessage: (text: string) => void;
+  matchWinner: Turn | null;
+  onReturnToMenu: () => void;
 }
 
 export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
@@ -57,9 +59,12 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
   playerName = "Player 1",
   opponentName = "Player 2",
   chatMessages,
-  onSendMessage
+  onSendMessage,
+  matchWinner,
+  onReturnToMenu
 }) => {
   const isDefendingChoice = currentPhase === "Defense Choice Phase" && pendingChoice;
+  const [isGameOverModalClosed, setIsGameOverModalClosed] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
 
   const [activeMobileMenu, setActiveMobileMenu] = useState<"log" | "chat" | null>(null);
@@ -872,6 +877,38 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
       )}
       {/* Mobile Floating Buttons removed */}
 
+      {/* Match Winner Modal */}
+      {matchWinner && !isGameOverModalClosed && (
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-neutral-900 border-2 border-orange-500 rounded-xl p-8 max-w-sm w-full flex flex-col items-center shadow-[0_0_50px_rgba(249,115,22,0.3)] animate-pop-in">
+            <h2 className="text-3xl font-black mb-2 tracking-tight text-center">
+              {matchWinner === "Player 1" ? (
+                <span className="text-blue-500 uppercase">VICTORY</span>
+              ) : (
+                <span className="text-red-500 uppercase">DEFEAT</span>
+              )}
+            </h2>
+            <div className="text-gray-300 text-center text-sm mb-6 font-medium">
+              {matchWinner === "Player 1" ? "Kamu memenangkan pertandingan!" : "Kamu kalah dalam pertandingan ini."}
+            </div>
+            
+            <div className="flex w-full gap-3">
+              <button 
+                onClick={() => setIsGameOverModalClosed(true)}
+                className="flex-1 border-2 border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white font-bold py-2 px-4 rounded transition-colors text-sm"
+              >
+                Lihat Papan
+              </button>
+              <button 
+                onClick={onReturnToMenu}
+                className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded transition-colors text-sm"
+              >
+                Main Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

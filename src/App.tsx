@@ -79,6 +79,7 @@ export default function App() {
   const [pendingCardSelection, setPendingCardSelection] = useState<PendingCardSelection | null>(null);
   const [pendingChoice, setPendingChoice] = useState<PendingChoice | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [matchWinner, setMatchWinner] = useState<Turn | null>(null);
 
   // Efek Toast Notification
   // Penjelasan Logika: Jika toastMessage memiliki isi (tidak null), kita akan memasang timer.
@@ -191,6 +192,7 @@ export default function App() {
           player2Sets,
           isBlockRebound,
           senderName: playerName,
+          matchWinner
         }
       });
     }, 150);
@@ -238,6 +240,11 @@ export default function App() {
         // Restore opponent name from the sender
         if (action.senderName) {
           setOpponentName(action.senderName);
+        }
+        if (action.matchWinner) {
+          setMatchWinner(action.matchWinner === "Player 1" ? "Player 2" : "Player 1");
+        } else {
+          setMatchWinner(null);
         }
         setTimeout(() => { isSyncing.current = false; }, 200);
       }
@@ -601,10 +608,8 @@ export default function App() {
 
     if (loserSetCards.length === 0) {
       showToast(`Pemain ${winner} Menang Mutlak! Set Area Lawan Habis!`);
-      handleNavigate("menu");
-      setPlayer1Sets(0);
-      setPlayer2Sets(0);
-      setActiveCards([]);
+      setMatchWinner(winner);
+      setCurrentPhase("End Phase");
       return;
     }
 
@@ -616,10 +621,8 @@ export default function App() {
 
     if (p1Score >= 3 || p2Score >= 3) {
       showToast(`Pertandingan Selesai! ${winner} memenangkan permainan!`);
-      handleNavigate("menu");
-      setPlayer1Sets(0);
-      setPlayer2Sets(0);
-      setActiveCards([]);
+      setMatchWinner(winner);
+      setCurrentPhase("End Phase");
       return;
     }
 
@@ -739,6 +742,7 @@ export default function App() {
   };
 
   const isPlayValid = () => {
+    if (matchWinner !== null) return false;
     if (currentTurn !== "Player 1") return false;
 
     if (currentPhase === "Serve Phase") {
@@ -1104,6 +1108,7 @@ export default function App() {
     setGameLogs([]);
     setHasDrawnThisTurn(false);
     setIsBlockRebound(false);
+    setMatchWinner(null);
     addLog("Game Dimulai!");
 
     if (isOnline && isHost) {
@@ -2012,13 +2017,19 @@ export default function App() {
   };
 
   const handleNavigate = (screen: Screen) => {
-    if (screen === "menu" && isOnline && roomCode) {
-      socket.emit('leaveRoom', roomCode);
+    if (screen === "menu") {
+      if (isOnline && roomCode) {
+        socket.emit('leaveRoom', roomCode);
+      }
       setIsOnline(false);
       setRoomCode("");
       setIsHost(false);
       setIsOpponentDisconnected(false);
       sessionStorage.removeItem('hqvgc_roomCode');
+      setMatchWinner(null);
+      setPlayer1Sets(0);
+      setPlayer2Sets(0);
+      setActiveCards([]);
     }
     setCurrentScreen(screen);
   };
@@ -2126,6 +2137,14 @@ export default function App() {
         opponentName={opponentName}
         chatMessages={chatMessages}
         onSendMessage={sendChatMessage}
+        matchWinner={matchWinner}
+        onReturnToMenu={() => {
+          setMatchWinner(null);
+          handleNavigate("menu");
+          setPlayer1Sets(0);
+          setPlayer2Sets(0);
+          setActiveCards([]);
+        }}
       />
     );
   };
