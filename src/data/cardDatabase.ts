@@ -1441,10 +1441,12 @@ export const cardDatabase: CardData[] = [
     year: "Third Year",
     position: "S",
     stats: { serve: 4, receive: 1, toss: 0, attack: 1, block: 2 },
-    effect: "Tidak ada efek",
+    effect: "If all your characters are Aoba Jōsai and this character is a Toss character, you may pay 2 guts when your Aoba Jōsai Attack character appears. If you do, add 1 to the Attack points of that character",
     image: "/assets/HV-01/HV-01-041.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayToss",
+    effectType: "hv01_041_oikawaTossBoost",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-042",
@@ -1454,12 +1456,10 @@ export const cardDatabase: CardData[] = [
     year: "Third Year",
     position: "S",
     stats: { serve: 4, receive: 0, toss: 1, attack: 3, block: 0 },
-    effect: "If all your characters are Aoba Jōsai and this character is a Toss character, you may pay 2 guts when your Aoba Jōsai Attack character appears. If you do, add 1 to the Attack points of that character.",
+    effect: "Tidak ada efek",
     image: "/assets/HV-01/HV-01-042.png",
-    effectTrigger: "onPlayToss",
-    effectType: "hv01_042_oikawaTossBoost",
-    effectCostType: "payGuts",
-    effectCostValue: 2
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-043",

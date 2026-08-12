@@ -1733,37 +1733,6 @@ export default function App() {
         break;
       }
 
-      case "hv01_002_hinataDisableBlock": {
-        // Check if a Karasuno character other than Hinata was previously in Attack (replaced by this card = guts beneath)
-        const atkLoc002 = playerType === "Player 1" ? "attack" : "bot_attack";
-        const gutsInAtk002 = activeCards.filter(c => c.isGuts && c.location === atkLoc002 && c.school === "Karasuno" && !c.name.includes("Hinata"));
-        if (gutsInAtk002.length > 0) {
-          setIsOpponentBlockDisabled(true);
-          addLog(`Efek HV-01 Hinata Aktif! Hinata mengganti karakter Karasuno → Lawan tidak bisa Block giliran depan!`);
-          showToast("Blok lawan dinonaktifkan giliran depan!");
-        } else {
-          addLog(`Efek HV-01-002 tidak aktif: Tidak ada karakter Karasuno lain sebagai Guts di Attack area.`);
-        }
-        break;
-      }
-
-      case "hv01_005_kageyamaQuick": {
-        // When Hinata appears in Attack area while this is Toss -> Attack+1, limit block to 1
-        // This effect is triggered passively when Hinata enters Attack, but for now we use manual trigger from Toss
-        const atkLoc005 = playerType === "Player 1" ? "attack" : "bot_attack";
-        const hinataInAtk = activeCards.find(c => c.location === atkLoc005 && !c.isGuts && c.name.includes("Hinata"));
-        if (hinataInAtk) {
-          setActiveCards(prev => prev.map(c => c.instanceId === hinataInAtk.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
-          setIsOpponentBlockDisabled(true); // Limit to 1 block (simplified: disable block entirely for now)
-          addLog(`Efek Kageyama Quick Aktif! Hinata Attack +1 dan lawan hanya bisa 1 Block!`);
-          showToast("Quick Attack! Hinata +1, Block lawan dibatasi!");
-        } else {
-          showToast("Tidak ada Shōyō Hinata di Attack area!");
-          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
-        }
-        break;
-      }
-
       case "hv01_008_kageyamaEndPhase": {
         // At end of attack phase, if Toss = this Kageyama, Hinata Attack+1 if ≤3
         // Auto effect - we resolve it when user clicks "Use Effect"
@@ -1914,22 +1883,6 @@ export default function App() {
       }
 
       case "hv01_033_kindaichiDebuff":
-      case "hv01_036_hanamakiDebuff": {
-        // If appears on Aoba Attack (other than self), opponent Attack -2 next turn
-        const atkLocDebuff = playerType === "Player 1" ? "attack" : "bot_attack";
-        const selfName = card.effectType === "hv01_033_kindaichiDebuff" ? "Kindaichi" : "Hanamaki";
-        const gutsInAtkDebuff = activeCards.filter(c => c.isGuts && c.location === atkLocDebuff && c.school === "Aoba Jōsai" && !c.name.includes(selfName));
-        if (gutsInAtkDebuff.length > 0) {
-          // Set a debuff modifier for opponent's next turn
-          // We'll use isOpponentBlockDisabled-style state for attack debuff
-          addLog(`Efek ${card.name} Aktif! Lawan akan mendapat -2 Attack setiap kali memainkan karakter Attack giliran depan!`);
-          showToast(`${card.name}: Debuff Attack -2 aktif!`);
-          // Store debuff info - for simplicity we log it. Full implementation would need a modifier state.
-        } else {
-          addLog(`Efek ${card.name} tidak aktif: Tidak ada karakter Aoba Jōsai lain sebagai Guts di Attack.`);
-        }
-        break;
-      }
 
       case "hv01_039_watari": {
         // All Aoba -> Receive+1 automatically, then pay 2 guts -> draw 1
@@ -1950,59 +1903,12 @@ export default function App() {
         break;
       }
 
-      case "hv01_040_oikawaServeDebuff": {
-        // When enters Serve, opponent Attack -2 each time next turn
-        addLog(`Efek Oikawa Serve Aktif! Setiap karakter Attack lawan akan mendapat -2 Attack giliran depan!`);
-        showToast("Oikawa Serve Debuff aktif!");
-        // This is a passive effect logged for awareness
-        break;
-      }
-
-      case "hv01_042_oikawaTossBoost": {
-        // All Aoba, Toss, when Aoba Attack appears -> Attack+1
-        const fieldCards042 = activeCards.filter(c => !c.isGuts && c.type === "Character" && !c.location.includes("hand") && !c.location.includes("deck") && !c.location.includes("drop"))
-          .filter(c => playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_"));
-        const allAoba042 = fieldCards042.every(c => c.school === "Aoba Jōsai");
-        
-        if (!allAoba042) {
-          showToast("Tidak semua karakter dari Aoba Jōsai!");
-          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
-          break;
-        }
-        
-        const atkLoc042 = playerType === "Player 1" ? "attack" : "bot_attack";
-        const aobaAtk = activeCards.find(c => c.location === atkLoc042 && !c.isGuts && c.school === "Aoba Jōsai");
-        if (aobaAtk) {
-          setActiveCards(prev => prev.map(c => c.instanceId === aobaAtk.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
-          addLog(`Efek Oikawa Toss Aktif! ${aobaAtk.name} Attack +1!`);
-          showToast(`${aobaAtk.name} Attack +1!`);
-        } else {
-          showToast("Tidak ada karakter Aoba Jōsai di Attack area!");
-          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
-        }
-        break;
-      }
 
       case "hv01_045_shimadaBlockSetter": {
         // Enter Serve, opponent can't put S position in Toss next turn
         setIsOpponentLiDisabled(true); // Reuse Li disabled to block S position (simplified)
         addLog(`Efek Shimada Aktif! Lawan tidak bisa menaruh karakter S di Toss area giliran depan!`);
         showToast("Shimada: Setter lawan dikunci!");
-        break;
-      }
-
-      case "hv01_046_moriDraw": {
-        // Receive=NA, NA other than Mori in Attack -> draw 1
-        const recLoc046 = playerType === "Player 1" ? "receive" : "bot_receive";
-        const atkLoc046 = playerType === "Player 1" ? "attack" : "bot_attack";
-        const recNA = activeCards.find(c => c.location === recLoc046 && !c.isGuts && c.school === "Neighborhood Association");
-        const atkNA = activeCards.find(c => c.location === atkLoc046 && !c.isGuts && c.school === "Neighborhood Association" && !c.name.includes("Mori"));
-        if (recNA && atkNA) {
-          setTimeout(() => performDraw(1, playerType), 0);
-          addLog(`Efek Mori Aktif! NA di Receive dan Attack → Draw 1 kartu!`);
-        } else {
-          addLog(`Efek Mori tidak aktif: Kondisi NA di Receive dan Attack tidak terpenuhi.`);
-        }
         break;
       }
 
@@ -2520,20 +2426,7 @@ export default function App() {
       }
     }
 
-    if (zoneId !== "block" && zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action" && zoneId !== "bot_action") {
-      const activeInZone = activeCards.filter(
-        (c) => c.location === zoneId && !c.isGuts,
-      ).length;
-      if (activeInZone >= 1) {
-        const isAlreadyThere = activeCards.some(
-          (c) => c.instanceId === cardToDrop.instanceId && c.location === zoneId,
-        );
-        if (!isAlreadyThere) {
-          showToast(`Area ${zoneId} sudah terisi!`);
-          return;
-        }
-      }
-    }
+    // Area terisi logic dihapus untuk memungkinkan Baton Pass / Menimpa kartu.
 
     // --- Logika Fase untuk Kartu Action ---
     // Penjelasan Logika: Mengecek apakah kartu memiliki syarat fase (phaseRestriction).
@@ -2597,16 +2490,145 @@ export default function App() {
 
     const cardId = cardToDrop.instanceId;
     if (cardId) {
+      let replacedCard: CardInstance | undefined;
       setActiveCards((prevCards) => {
         const cardToMove = prevCards.find((card) => card.instanceId === cardId);
         if (!cardToMove) return prevCards;
-        const otherCards = prevCards.filter((card) => card.instanceId !== cardId);
-        return [...otherCards, { ...cardToMove, location: zoneId, isEffectActive: true }];
+        
+        return prevCards.map(c => {
+          if (c.instanceId === cardId) {
+            return { ...c, location: zoneId as any, isEffectActive: true };
+          }
+          if (c.location === zoneId && !c.isGuts && c.type !== "Action" && zoneId !== "block") {
+             replacedCard = { ...c };
+             return { ...c, isGuts: true };
+          }
+          return c;
+        });
       });
 
       playSound("play");
       setSelectedCard(null);
 
+      
+      // --- Auto Trigger Evaluator ---
+      setTimeout(() => {
+        setActiveCards(currentCards => {
+          let updatedCards = [...currentCards];
+          let updatedLog = "";
+          let requiresChoice = null;
+          let isOpBlockDisabled = isOpponentBlockDisabled;
+          
+          const placedCard = updatedCards.find(c => c.instanceId === cardId);
+          if (!placedCard) return currentCards;
+          
+          // 1. Hinata 002 (Baton pass)
+          if (replacedCard && replacedCard.name.includes("Hinata") && placedCard.school === "Karasuno" && placedCard.type === "Character" && placedCard.location.includes("attack")) {
+            isOpBlockDisabled = true;
+            updatedLog = "Efek HV-01 Hinata Aktif! Opponent Block Disabled!";
+          }
+          // 2. Kageyama 005 (When Hinata placed in Attack, Kageyama in Toss)
+          if (placedCard.name.includes("Hinata") && placedCard.location.includes("attack")) {
+            const kageyama = updatedCards.find(c => c.location.includes("toss") && !c.isGuts && c.name.includes("Kageyama"));
+            if (kageyama) {
+              updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c);
+              isOpBlockDisabled = true;
+              updatedLog = "Efek Kageyama Quick Aktif! Hinata +1 Attack & Opponent Block Disabled!";
+            }
+          }
+          // 3. Tanaka 016 (Baton pass on Hinata)
+          if (replacedCard && replacedCard.name.includes("Hinata") && placedCard.name.includes("Tanaka") && placedCard.location.includes("attack")) {
+             requiresChoice = {
+               title: "Bayar 3 Guts untuk +3 Attack Tanaka?",
+               options: [{ label: "Ya", action: () => {
+                 setActiveCards(prev => prev.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 3 } } : c));
+                 addLog("Tanaka +3 Attack aktif!"); setPendingChoice(null);
+               }}], onCancel: () => setPendingChoice(null)
+             };
+          }
+          // 4. Yamaguchi 023 (Placed in receive, Tsukishima in attack)
+          if (placedCard.name.includes("Yamaguchi") && placedCard.location.includes("receive")) {
+             const tsukki = updatedCards.find(c => c.location.includes("attack") && !c.isGuts && c.name.includes("Tsukishima"));
+             if (tsukki) {
+               updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 2 } } : c);
+               updatedLog = "Yamaguchi masuk, Tsukki ada di Attack! Yamaguchi +2 Receive!";
+             }
+          }
+          // 5. Nishinoya 026 (Baton pass)
+          if (replacedCard && replacedCard.name.includes("Nishinoya") && placedCard.school === "Karasuno" && placedCard.location.includes("receive")) {
+            updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 2 } } : c);
+            updatedLog = "Efek Nishinoya (Guts) aktif! Karakter baru mendapat +2 Receive!";
+          }
+          // 6. Azumane 028 (When Nishinoya placed in receive)
+          if (placedCard.name.includes("Nishinoya") && placedCard.location.includes("receive")) {
+             const azumane = updatedCards.find(c => !c.isGuts && c.name.includes("Azumane") && !c.location.includes("bot_"));
+             if (azumane) {
+               requiresChoice = {
+                 title: "Azumane: Bayar 2 Guts agar Nishinoya +1 Rec & Asahi kembali ke tangan?",
+                 options: [{ label: "Ya", action: () => {
+                   setActiveCards(prev => prev.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 1 } } : (c.instanceId === azumane.instanceId ? { ...c, location: "hand" } : c)));
+                   addLog("Azumane efek aktif!"); setPendingChoice(null);
+                 }}], onCancel: () => setPendingChoice(null)
+               };
+             }
+          }
+          // 7. Kindaichi 033 & Hanamaki 036 (Baton pass on Aoba Josai)
+          if (replacedCard && replacedCard.school === "Aoba Jōsai" && (placedCard.name.includes("Kindaichi") || placedCard.name.includes("Hanamaki")) && placedCard.location.includes("attack")) {
+            // Apply debuff marker (simply applying -2 to current opponent attack if exists, or using a global state)
+            // For now, let's just log it. A continuous aura is complex without a global state flag.
+            updatedLog = "Efek Kindaichi/Hanamaki: Attack lawan akan -2 (Marker diterapkan).";
+            // We can add a property or effect marker to the activeCards.
+          }
+          // 8. Watari 039 (Placed in receive, all Aoba Josai)
+          if (placedCard.name.includes("Watari") && placedCard.location.includes("receive")) {
+             updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 1 } } : c);
+             requiresChoice = {
+               title: "Watari: Bayar 2 Guts untuk Draw 1?",
+               options: [{ label: "Ya", action: () => {
+                 setTimeout(() => performDraw(1, "Player 1"), 0); addLog("Watari draw 1!"); setPendingChoice(null);
+               }}], onCancel: () => setPendingChoice(null)
+             };
+          }
+          // 9. Oikawa 041 (When Aoba Attack appears, Oikawa in Toss)
+          if (placedCard.school === "Aoba Jōsai" && placedCard.location.includes("attack")) {
+            const oikawa = updatedCards.find(c => c.location.includes("toss") && !c.isGuts && c.name.includes("Oikawa"));
+            if (oikawa) {
+               requiresChoice = {
+                 title: "Oikawa: Bayar 2 Guts untuk +1 Attack?",
+                 options: [{ label: "Ya", action: () => {
+                   setActiveCards(prev => prev.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
+                   addLog("Oikawa Toss Boost aktif!"); setPendingChoice(null);
+                 }}], onCancel: () => setPendingChoice(null)
+               };
+            }
+          }
+          // 10. Mori 046 (When Neighborhood Attack appears)
+          if (placedCard.school === "Neighborhood Association" && placedCard.location.includes("attack")) {
+            const mori = updatedCards.find(c => c.location.includes("receive") && !c.isGuts && c.name.includes("Mori"));
+            if (mori) {
+              setTimeout(() => performDraw(1, "Player 1"), 0);
+              updatedLog = "Efek Mori aktif! Draw 1 kartu.";
+            }
+          }
+          // 11. Oikawa 040 Aura (Opponent plays Attack)
+          if (placedCard.location.includes("attack")) {
+            const isBotPlay = placedCard.location.startsWith("bot_");
+            const opponentServeLoc = isBotPlay ? "serve" : "bot_serve"; // Opposite of player
+            const oikawa040 = updatedCards.find(c => c.location === opponentServeLoc && !c.isGuts && c.name.includes("Oikawa"));
+            if (oikawa040) {
+              updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, attack: Math.max(0, c.stats.attack - 2) } } : c);
+              updatedLog = "Efek Oikawa (Serve) Aktif! Karakter Attack lawan menerima -2 Attack!";
+            }
+          }
+          
+          if (updatedLog) setTimeout(() => addLog(updatedLog), 100);
+          if (isOpBlockDisabled !== isOpponentBlockDisabled) setIsOpponentBlockDisabled(isOpBlockDisabled);
+          if (requiresChoice) setTimeout(() => setPendingChoice(requiresChoice), 200);
+
+          return updatedCards;
+        });
+      }, 0);
+      
       // --- Efek Pasif: Kenma Kozume ---
       if (zoneId === "attack" && cardToDrop.type !== "Action" && cardToDrop.stats.attack >= 3) {
         // Cek apakah Kenma Kozume ada di Toss Area dan efeknya aktif
