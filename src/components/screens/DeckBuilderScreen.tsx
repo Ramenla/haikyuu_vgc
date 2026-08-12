@@ -36,7 +36,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
   const [showMobileDetail, setShowMobileDetail] = useState<boolean>(false);
 
   const [activeDeckId, setActiveDeckId] = useState<string>("new");
-  const [deckName, setDeckName] = useState<string>("Starter Deck");
+  const [deckName, setDeckName] = useState<string>(`Deck ${customDecks.length + 1}`);
 
   const handleSaveDeck = () => {
     if (deckName.trim() === "") {
@@ -72,7 +72,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
     if (confirm("Apakah kamu yakin ingin menghapus deck ini?")) {
       setCustomDecks(customDecks.filter(d => d.id !== activeDeckId));
       setActiveDeckId("new");
-      setDeckName("Starter Deck");
+      setDeckName(`Deck ${customDecks.length}`); // after delete, length is reduced by 1 in state but customDecks variable still old, wait actually just use length
       setBuilderDeck([]);
     }
   };
@@ -81,7 +81,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
     const id = e.target.value;
     setActiveDeckId(id);
     if (id === "new") {
-      setDeckName("Custom Deck Baru");
+      setDeckName(`Deck ${customDecks.length + 1}`);
       setBuilderDeck([]);
     } else if (id.startsWith("starter-")) {
       const prefixMap: Record<string, string> = {
@@ -229,13 +229,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
             ))}
           </select>
           
-          <input 
-            type="text" 
-            value={deckName}
-            onChange={(e) => setDeckName(e.target.value)}
-            placeholder="Nama Deck"
-            className="bg-black text-white p-2 rounded border border-gray-700 flex-1 min-w-[200px]"
-          />
+
           
           <div className={`px-4 py-2 font-bold rounded ${builderDeck.length === 40 ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}`}>
             {builderDeck.length}/40 Kartu
@@ -521,9 +515,13 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
         {/* Kolom Kanan: Your Deck */}
         <div className="flex-1 md:flex-none w-full md:w-1/4 lg:w-1/4 bg-neutral-900 border-t-2 border-gray-800 md:border md:border-gray-800 md:rounded md:p-4 flex flex-col min-h-0">
           <div className="flex justify-between items-center bg-neutral-900 md:bg-transparent border-b-2 border-gray-800 md:border-gray-700 p-2 md:p-0 md:mb-3 md:pb-2 shrink-0">
-            <h3 className="text-lg md:text-lg font-bold text-gray-300">
-              Your Deck
-            </h3>
+            <input
+              type="text"
+              value={deckName}
+              onChange={(e) => setDeckName(e.target.value)}
+              placeholder="Nama Deck"
+              className="text-lg md:text-lg font-bold text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-orange-500 focus:outline-none focus:bg-black/50 transition-colors px-1 w-[150px] md:w-auto"
+            />
             <span
               className={`text-lg md:text-sm font-bold md:font-mono ${
                 builderDeck.length >= 40 ? "text-orange-500" : "text-gray-400"
