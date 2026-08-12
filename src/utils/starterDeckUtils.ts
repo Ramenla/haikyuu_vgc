@@ -1,4 +1,4 @@
-import { CardData } from "../data/cardDatabase";
+import { CardData } from "../types/card";
 
 export function getStarterDeckCards(deckId: string, cardDatabase: CardData[]): CardData[] {
   const prefixMap: Record<string, string> = {

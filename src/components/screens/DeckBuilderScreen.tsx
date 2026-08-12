@@ -153,6 +153,8 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
         filterMatch = card.id.startsWith("HVD-04");
       else if (deckBuilderFilter === "Fukurodani")
         filterMatch = card.id.startsWith("HVD-05");
+      else if (deckBuilderFilter === "HV-01")
+        filterMatch = card.id.startsWith("HV-01");
       else if (deckBuilderFilter === "Character")
         filterMatch = card.type === "Character";
       else if (deckBuilderFilter === "Action")
@@ -392,6 +394,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
                 <option value="KarasunoEvo" className="bg-neutral-800 text-white">HVD-03 (Karasuno Evo)</option>
                 <option value="Aoba" className="bg-neutral-800 text-white">HVD-04 (Aoba Jōsai)</option>
                 <option value="Fukurodani" className="bg-neutral-800 text-white">HVD-05 (Fukurōdani)</option>
+                <option value="HV-01" className="bg-neutral-800 text-white">HV-01 (Karasuno VC)</option>
                 <option value="Character" className="bg-neutral-800 text-white">Character Saja</option>
                 <option value="Action" className="bg-neutral-800 text-white">Action Saja</option>
               </select>
@@ -418,6 +421,7 @@ export const DeckBuilderScreen: React.FC<DeckBuilderScreenProps> = ({
               <option value="KarasunoEvo" className="bg-neutral-800 text-white">Karasuno Evo</option>
               <option value="Aoba" className="bg-neutral-800 text-white">Aoba Josai</option>
               <option value="Fukurodani" className="bg-neutral-800 text-white">Fukurodani</option>
+              <option value="HV-01" className="bg-neutral-800 text-white">HV-01</option>
               <option value="Character" className="bg-neutral-800 text-white">Character</option>
               <option value="Action" className="bg-neutral-800 text-white">Action</option>
             </select>
