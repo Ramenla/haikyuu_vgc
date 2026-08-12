@@ -900,8 +900,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 2, receive: 2, toss: 0, attack: 2, block: 2 },
     effect: "If your Toss character is \"Tobio Kageyama\", you may pay 2 guts when this character enters the Attack area. If you do, add 2 to the Attack points of this character.",
     image: "/assets/HV-01/HV-01-001.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayAttack",
+    effectType: "hv01_001_hinataKageyama",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-002",
@@ -913,8 +915,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 2, receive: 0, toss: 0, attack: 3, block: 2 },
     effect: "If an Attack character from Karasuno other than \"Shōyō Hinata\" appears on this character, the opponent cannot bring out a Block character for the next opponent's turn.",
     image: "/assets/HV-01/HV-01-002.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayAttack",
+    effectType: "hv01_002_hinataDisableBlock"
   },
   {
     id: "HV-01-003",
@@ -952,8 +954,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 0, toss: 1, attack: 1, block: 2 },
     effect: "When this character is a Toss character and \"Shōyō Hinata\" appears in the Attack area, you may pay 2 guts. If you do, add 1 to the Attack point of that character, and your opponent can only put up to 1 Block character from their hand on the next turn.",
     image: "/assets/HV-01/HV-01-005.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayToss",
+    effectType: "hv01_005_kageyamaQuick",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-006",
@@ -991,8 +995,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 1, toss: 1, attack: 0, block: 2 },
     effect: "At the end of the attack phase, if this character is a Toss character, add 1 to the attack point of a \"Shōyō Hinata\" Attack character of 3 or lower.",
     image: "/assets/HV-01/HV-01-008.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayToss",
+    effectType: "hv01_008_kageyamaEndPhase"
   },
   {
     id: "HV-01-009",
@@ -1017,8 +1021,11 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 4, toss: 0, attack: 1, block: 0 },
     effect: "When this character enters the receive area, you may pay 2 guts. If you do, draw a card from your deck.",
     image: "/assets/HV-01/HV-01-010.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayReceive",
+    effectType: "drawCard",
+    effectValue: 1,
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-011",
@@ -1043,8 +1050,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 2, toss: 1, attack: 1, block: 2 },
     effect: "If all your characters are Karasuno, when this character enters the Toss area, you may pay 2 guts. If you do, add 1 card from your Action area to your hand.",
     image: "/assets/HV-01/HV-01-012.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayToss",
+    effectType: "hv01_012_sugawaraReturnAction",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-013",
@@ -1069,8 +1078,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 2, toss: 1, attack: 0, block: 2 },
     effect: "When this character enters the Toss area, you may pay 2 guts. If you do, add up to one of your Drop area \"Asahi Azumane\" or \"Yū Nishinoya\" cards to your hand.",
     image: "/assets/HV-01/HV-01-014.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayToss",
+    effectType: "hv01_014_sugawaraRecoverDrop",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-015",
@@ -1095,8 +1106,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 2, receive: 2, toss: 0, attack: 2, block: 2 },
     effect: "When this character appears on \"Shōyō Hinata\", you may pay 3 guts. If you do, add 3 to the attack points of this character.",
     image: "/assets/HV-01/HV-01-016.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayAttack",
+    effectType: "hv01_016_tanakaOnHinata",
+    effectCostType: "payGuts",
+    effectCostValue: 3
   },
   {
     id: "HV-01-017",
@@ -1186,8 +1199,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 2, toss: 0, attack: 0, block: 2 },
     effect: "When your Attack character is \"Kei Tsukishima\" and this character appears in the Receive area, add +2 to the Receive points of this character.",
     image: "/assets/HV-01/HV-01-023.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayReceive",
+    effectType: "hv01_023_yamaguchiTsukishima"
   },
   {
     id: "HV-01-024",
@@ -1199,8 +1212,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 4, toss: 0, attack: 0, block: 0 },
     effect: "You may pay 2 guts when your \"Asahi Azumane\" comes into the Attack area. If you do, add 1 to that character's Attack points and return this character to your hand.",
     image: "/assets/HV-01/HV-01-024.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayReceive",
+    effectType: "hv01_024_nishinoyaAzumane",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-025",
@@ -1225,8 +1240,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 2, receive: 5, toss: 0, attack: 0, block: 0 },
     effect: "When a Karasuno Receive character other than \"Yū Nishinoya\" appears on this character, add +2 to the Receive point of that character.",
     image: "/assets/HV-01/HV-01-026.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayReceive",
+    effectType: "hv01_026_nishinoyaBoostReceive"
   },
   {
     id: "HV-01-027",
@@ -1251,8 +1266,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 0, toss: 0, attack: 3, block: 0 },
     effect: "You may pay 2 guts when your \"Yū Nishinoya\" appears in the Receive area. If you do, add 1 to the Receive points of that character and return this character to your hand.",
     image: "/assets/HV-01/HV-01-028.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayAttack",
+    effectType: "hv01_028_azumaneNishinoya",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-029",
@@ -1301,10 +1318,11 @@ export const cardDatabase: CardData[] = [
     year: "Second Year",
     position: "WS",
     stats: { serve: 2, receive: 2, toss: 0, attack: 2, block: 2 },
-    effect: " [Put this card from your hand into the drop area]; Add +2 to the receive or block points of one of your Karasuno High School characters. Activate this ability in your hand.",
+    effect: "[Put this card from your hand into the drop area]; Add +2 to the receive or block points of one of your Karasuno High School characters. Activate this ability in your hand.",
     image: "/assets/HV-01/HV-01-032.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onHandActivate",
+    effectType: "buffDefense",
+    effectValue: 2
   },
   {
     id: "HV-01-033",
@@ -1316,8 +1334,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 1, toss: 0, attack: 3, block: 2 },
     effect: "If this character appears on an attack character from Aoba Jōsai other than \"Yūtarō Kindaichi\", the attack point of that character will be reduced by -2 each time the opponent's attack character appears next turn.",
     image: "/assets/HV-01/HV-01-033.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayAttack",
+    effectType: "hv01_033_kindaichiDebuff"
   },
   {
     id: "HV-01-034",
@@ -1329,8 +1347,11 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 3, toss: 0, attack: 3, block: 1 },
     effect: "When this character enters the Attack area, you may pay 3 guts. If you do, add 1 to the Attack points of this character.",
     image: "/assets/HV-01/HV-01-034.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayAttack",
+    effectType: "addPower",
+    effectValue: 1,
+    effectCostType: "payGuts",
+    effectCostValue: 3
   },
   {
     id: "HV-01-035",
@@ -1355,8 +1376,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 2, toss: 0, attack: 3, block: 1 },
     effect: "If this character appears on an Attack character other than \"Takahiro Hanamaki\" from Aoba Jōsai, each time the opponent's Attack character appears on the next opponent's turn, the Attack point of that character is reduced by -2.",
     image: "/assets/HV-01/HV-01-036.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayAttack",
+    effectType: "hv01_036_hanamakiDebuff"
   },
   {
     id: "HV-01-037",
@@ -1394,8 +1415,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 4, receive: 3, toss: 1, attack: 0, block: 0 },
     effect: "If all your characters are Aoba Jōsai, and when this character appears in the Receive area, add 1 to the Receive point of this character. Then you may pay 2 guts. If you do, draw a card from your deck.",
     image: "/assets/HV-01/HV-01-039.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayReceive",
+    effectType: "hv01_039_watari",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-040",
@@ -1407,8 +1430,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 4, receive: 2, toss: 1, attack: 0, block: 0 },
     effect: "When this character enters the serve area, each time an attack character appears on the opponent's turn, the attack point of that character is reduced by -2.",
     image: "/assets/HV-01/HV-01-040.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayServe",
+    effectType: "hv01_040_oikawaServeDebuff"
   },
   {
     id: "HV-01-041",
@@ -1433,8 +1456,10 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 4, receive: 0, toss: 1, attack: 3, block: 0 },
     effect: "If all your characters are Aoba Jōsai and this character is a Toss character, you may pay 2 guts when your Aoba Jōsai Attack character appears. If you do, add 1 to the Attack points of that character.",
     image: "/assets/HV-01/HV-01-042.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayToss",
+    effectType: "hv01_042_oikawaTossBoost",
+    effectCostType: "payGuts",
+    effectCostValue: 2
   },
   {
     id: "HV-01-043",
@@ -1472,8 +1497,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 2, toss: 0, attack: 3, block: 2 },
     effect: "If this character enters the Serve area, the opponent cannot put S character into the Toss area the next turn.",
     image: "/assets/HV-01/HV-01-045.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayServe",
+    effectType: "hv01_045_shimadaBlockSetter"
   },
   {
     id: "HV-01-046",
@@ -1485,8 +1510,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 3, toss: 1, attack: 0, block: 2 },
     effect: "If your Receive character is a Neighborhood Association character and a Neighborhood Association character other than \"Yukinari Mori\" appears in your Attack area, you may draw a card from the deck.",
     image: "/assets/HV-01/HV-01-046.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayToss",
+    effectType: "hv01_046_moriDraw"
   },
   {
     id: "HV-01-047",
@@ -1498,8 +1523,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Draw Phase] Draw a card from the deck. Then you may pay 2 guts from your character. If you do, draw a card from your deck",
     image: "/assets/HV-01/HV-01-047.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_047_iveDoneIt",
+    phaseRestriction: "Receive"
   },
   {
     id: "HV-01-048",
@@ -1511,8 +1537,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Toss Phase] Add 1 to the Toss points of your \"Tobio Kageyama\". Then, you may put a card from your hand into the drop area. If you do, add 1 \"Shōyō Hinata\" from your drop area to your hand.",
     image: "/assets/HV-01/HV-01-048.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_048_illTakeTheBall",
+    phaseRestriction: "Toss"
   },
   {
     id: "HV-01-049",
@@ -1524,8 +1551,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Toss Phase] You may put one of your Toss character's guts \"Tobio Kageyama\" into your Toss area. Then, you may put a card from your hand into the drop area. If you do, add a card from the Action area other than \"Toss to me, Bring it to me!!!\" to your hand.",
     image: "/assets/HV-01/HV-01-049.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_049_tossToMe",
+    phaseRestriction: "Toss"
   },
   {
     id: "HV-01-050",
@@ -1537,8 +1565,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Recieve Phase] [Attack Phase] Add 2 to the Receive points or 1 to the Attack points of your own \"Yū Nishinoya\" or \"Asahi Azumane\".",
     image: "/assets/HV-01/HV-01-050.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_050_callTheToss",
+    phaseRestriction: "Receive,Attack"
   },
   {
     id: "HV-01-051",
@@ -1550,8 +1579,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Attack Phase] Draw a card from the deck. After that, if your Toss character is \"Kōshi Sugawara\" and your Attack character is \"Asahi Azumane\", add 1 to the attack point of one \"Asahi Azumane\". After that, you can't use \"Don't Quit Ace!!!\" this turn.",
     image: "/assets/HV-01/HV-01-051.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_051_dontQuitAce",
+    phaseRestriction: "Attack"
   },
   {
     id: "HV-01-052",
@@ -1563,8 +1593,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Draw Phase] Draw a card from the deck. Then, if you have 3 or fewer cards in your hand, you may draw 1 card from your deck.",
     image: "/assets/HV-01/HV-01-052.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_052_oneStep",
+    phaseRestriction: "Receive"
   },
   {
     id: "HV-01-053",
@@ -1576,8 +1607,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Receive Phase] Draw a card from the deck. Then add +1 to the Receive point of your Receive character.",
     image: "/assets/HV-01/HV-01-053.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "actionCountingOnYou",
+    phaseRestriction: "Receive"
   },
   {
     id: "HV-01-054",
@@ -1589,8 +1621,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Attack Phase] Draw a card from the deck. After that, add 1 to the Attack points of Attack characters from Karasuno whose Attack points are 4 or less.",
     image: "/assets/HV-01/HV-01-054.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_054_youGuysAreStrong",
+    phaseRestriction: "Attack"
   },
   {
     id: "HV-01-055",
@@ -1602,8 +1635,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Recieve Phase] [Block Phase] Draw a card from the deck. After that, add +2 to the Receive point or Block point of your own \"Ryūnosuke Tanaka\" or First Year character from Karasuno.",
     image: "/assets/HV-01/HV-01-055.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_055_superiorClumsiness",
+    phaseRestriction: "Receive,Block"
   },
   {
     id: "HV-01-056",
@@ -1615,8 +1649,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Draw Phase] You may add up to 1 of your drop area \"Shōyō Hinata\" or \"Tobio Kageyama\" cards to your hand.",
     image: "/assets/HV-01/HV-01-056.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_056_strongestAlly",
+    phaseRestriction: "Receive"
   },
   {
     id: "HV-01-057",
@@ -1628,8 +1663,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Attack Phase] Put one character card from the Neighborhood Assosiation in your drop area into your Attack area. Then you may pay 1 guts from that character. If you do, add 1 to the Attack points of that character.",
     image: "/assets/HV-01/HV-01-057.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_057_teamCalled",
+    phaseRestriction: "Attack"
   },
   {
     id: "HV-01-058",
@@ -1641,8 +1677,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Attack Phase] Specify one card name. On the next opponent's turn, if the opponent puts out a Karasuno character with the specified card name, the opponent puts 1 guts of that character in the drop area.",
     image: "/assets/HV-01/HV-01-058.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_058_sawamuraKun",
+    phaseRestriction: "Attack"
   },
   {
     id: "HV-01-059",
@@ -1654,8 +1691,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 0, receive: 0, toss: 0, attack: 0, block: 0 },
     effect: "[Attack Phase] Draw a card from the deck. After that, if your Attack character is from Aoba Jōsai, each time your opponent's Attack character comes out on the next turn, that character's Attack point is reduced by -2.",
     image: "/assets/HV-01/HV-01-059.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "hv01_059_nextTimeWeWin",
+    phaseRestriction: "Attack"
   },
   {
     id: "HV-01-060",
@@ -1667,8 +1705,9 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 2, receive: 0, toss: 0, attack: 3, block: 3 },
     effect: "[Serve Phase] [Toss Phase] Draw a card from the deck. After that, add 1 to \"Toru Oikawa's\" serve point or toss point. After that, you can't use \"Doesn't it make sense to connect to that attack?\" this turn.",
     image: "/assets/HV-01/HV-01-060.png",
-    effectTrigger: "",
-    effectType: ""
+    effectTrigger: "onPlayEvent",
+    effectType: "actionOikawaEvent",
+    phaseRestriction: "Serve,Toss"
   },
   {
     id: "HV-01-061",

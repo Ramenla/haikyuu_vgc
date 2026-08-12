@@ -69,6 +69,7 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
 
   const [activeMobileMenu, setActiveMobileMenu] = useState<"log" | "chat" | null>(null);
   const [chatInput, setChatInput] = useState("");
+  const [viewingDropZone, setViewingDropZone] = useState<"Player 1" | "Player 2" | null>(null);
   const mobileLogEndRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -470,7 +471,10 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
               <>Event<br />Area</>
             )}
           </div>
-          <div className="w-16 h-[5.5rem] bg-neutral-800 border border-gray-700 rounded flex items-center justify-center text-[9px] font-bold text-gray-500 text-center leading-tight relative overflow-hidden">
+          <div 
+            className="w-16 h-[5.5rem] bg-neutral-800 border border-gray-700 rounded flex items-center justify-center text-[9px] font-bold text-gray-500 text-center leading-tight relative overflow-hidden cursor-pointer hover:border-gray-500 transition-colors"
+            onClick={() => setViewingDropZone("Player 2")}
+          >
             {activeCards.filter((card) => card.location === "bot_drop").length >
             0 ? (
               <div className="w-full h-full relative">
@@ -576,7 +580,10 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
           <div className="col-span-2 w-full h-[5.5rem] bg-neutral-800/80 border border-gray-700 rounded flex items-center justify-center text-[9px] font-bold text-gray-400 text-center leading-tight relative">
             {renderZone("action", "Event<br/>Area")}
           </div>
-          <div className="w-16 h-[5.5rem] bg-neutral-800/80 border border-gray-700 rounded flex flex-col items-center justify-center relative overflow-hidden">
+          <div 
+            className="w-16 h-[5.5rem] bg-neutral-800/80 border border-gray-700 rounded flex flex-col items-center justify-center relative overflow-hidden cursor-pointer hover:border-gray-500 transition-colors"
+            onClick={() => setViewingDropZone("Player 1")}
+          >
             {activeCards.filter((card) => card.location === "drop").length >
             0 ? (
               <div className="w-full h-full relative">
@@ -878,6 +885,56 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
       {/* Mobile Floating Buttons removed */}
 
       {/* Match Winner Modal */}
+      {viewingDropZone && (
+        <div 
+          className="absolute inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 p-4"
+          onClick={() => setViewingDropZone(null)}
+        >
+          <div 
+            className="bg-neutral-900 border-2 border-gray-700 rounded-lg w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center p-3 border-b border-gray-800 bg-neutral-800 rounded-t-lg">
+              <h2 className="text-white font-bold tracking-widest uppercase">
+                Drop Area - {viewingDropZone === "Player 1" ? playerName : opponentName} 
+              </h2>
+              <button 
+                onClick={() => setViewingDropZone(null)}
+                className="text-gray-400 hover:text-white bg-black/30 hover:bg-black/60 rounded px-3 py-1 font-bold"
+              >
+                X
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-minimalist">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {activeCards
+                  .filter(c => c.location === (viewingDropZone === "Player 1" ? "drop" : "bot_drop"))
+                  .map((card, idx) => (
+                    <div key={card.instanceId} className="relative group flex flex-col items-center">
+                      <div className="w-full aspect-[2/3] border border-gray-700 rounded relative overflow-hidden bg-black hover:border-orange-500 transition-colors cursor-pointer" onClick={() => onSelectCard(card)}>
+                        <img 
+                          src={encodeURI(card.image)} 
+                          alt={card.name} 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-1 left-1 bg-black/80 border border-gray-600 text-white text-[8px] px-1 rounded">
+                          {idx + 1}
+                        </div>
+                      </div>
+                    </div>
+                ))}
+                {activeCards.filter(c => c.location === (viewingDropZone === "Player 1" ? "drop" : "bot_drop")).length === 0 && (
+                  <div className="col-span-full text-center text-gray-500 py-10 italic">
+                    Drop Area Kosong
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {matchWinner && !isGameOverModalClosed && (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300">
           <div className="bg-neutral-900 border-2 border-orange-500 rounded-xl p-8 max-w-sm w-full flex flex-col items-center shadow-[0_0_50px_rgba(249,115,22,0.3)] animate-pop-in">

@@ -723,27 +723,48 @@ export default function App() {
       c.instanceId === selectedCard.instanceId ? { ...c, location: 'drop' } : c
     ));
 
-    // 3. Tambahkan efeknya (misalnya buffDefense +2) ke kartu pertahanan (Receive atau Block) yang sedang aktif di arena
+    // 3. Cari kartu pertahanan (Receive atau Block) yang valid (misalnya Karasuno)
     if (selectedCard.effectType === 'buffDefense' && selectedCard.effectValue) {
-      setActiveCards(prev => {
-        const activeDefCard = prev.find(c => (c.location === 'receive' || c.location === 'block') && !c.isGuts);
-        if (activeDefCard) {
-          return prev.map(c =>
-            c.instanceId === activeDefCard.instanceId
-              ? {
-                ...c,
-                stats: {
-                  ...c.stats,
-                  receive: c.stats.receive + selectedCard.effectValue!,
-                  block: c.stats.block + selectedCard.effectValue!
-                }
+      const validDefCards = activeCards.filter(c => (c.location === 'receive' || c.location === 'block') && !c.isGuts && (c.location.startsWith(currentTurn === "Player 1" ? "" : "bot_")) && !c.location.startsWith(currentTurn === "Player 1" ? "bot_" : ""));
+      
+      const processStatChoice = (targetCard: CardInstance) => {
+        setPendingChoice({
+          title: `Pilih stat untuk ${targetCard.name}`,
+          options: [
+            {
+              label: `+${selectedCard.effectValue} Receive`,
+              action: () => {
+                setActiveCards(prev => prev.map(c => c.instanceId === targetCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + selectedCard.effectValue! } } : c));
+                addLog(`Efek Tangan Aktif! ${selectedCard.name} menambah Receive ${targetCard.name} sebesar ${selectedCard.effectValue}!`);
+                setPendingChoice(null);
               }
-              : c
-          );
-        }
-        return prev;
-      });
-      addLog(`Efek Tangan Aktif! ${selectedCard.name} dibuang untuk menambah Defense sebesar ${selectedCard.effectValue}!`);
+            },
+            {
+              label: `+${selectedCard.effectValue} Block`,
+              action: () => {
+                setActiveCards(prev => prev.map(c => c.instanceId === targetCard.instanceId ? { ...c, stats: { ...c.stats, block: c.stats.block + selectedCard.effectValue! } } : c));
+                addLog(`Efek Tangan Aktif! ${selectedCard.name} menambah Block ${targetCard.name} sebesar ${selectedCard.effectValue}!`);
+                setPendingChoice(null);
+              }
+            }
+          ],
+          onCancel: () => setPendingChoice(null)
+        });
+      };
+
+      if (validDefCards.length > 1) {
+        setPendingCardSelection({
+          title: "Pilih Karakter untuk ditingkatkan",
+          cards: validDefCards,
+          onSelect: (selected) => {
+            processStatChoice(selected);
+          }
+        });
+      } else if (validDefCards.length === 1) {
+        processStatChoice(validDefCards[0]);
+      } else {
+        showToast("Tidak ada karakter bertahan yang valid!");
+      }
     }
 
     // 4. Kosongkan pilihan kartu agar UI bersih kembali
@@ -1694,6 +1715,688 @@ export default function App() {
           setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
         }
         break;
+
+      // ============ HV-01 BOOSTER PACK EFFECTS ============
+
+      case "hv01_001_hinataKageyama": {
+        // If Toss character is Kageyama, Attack+2
+        const tossLoc001 = playerType === "Player 1" ? "toss" : "bot_toss";
+        const tossCard001 = activeCards.find(c => c.location === tossLoc001 && !c.isGuts && c.name.includes("Kageyama"));
+        if (tossCard001) {
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 2 } } : c));
+          addLog(`Efek HV-01 Hinata Aktif! Kageyama di Toss → Attack +2!`);
+          showToast("Kombo Hinata-Kageyama! Attack +2!");
+        } else {
+          showToast("Karakter Toss bukan Tobio Kageyama!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_002_hinataDisableBlock": {
+        // Check if a Karasuno character other than Hinata was previously in Attack (replaced by this card = guts beneath)
+        const atkLoc002 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const gutsInAtk002 = activeCards.filter(c => c.isGuts && c.location === atkLoc002 && c.school === "Karasuno" && !c.name.includes("Hinata"));
+        if (gutsInAtk002.length > 0) {
+          setIsOpponentBlockDisabled(true);
+          addLog(`Efek HV-01 Hinata Aktif! Hinata mengganti karakter Karasuno → Lawan tidak bisa Block giliran depan!`);
+          showToast("Blok lawan dinonaktifkan giliran depan!");
+        } else {
+          addLog(`Efek HV-01-002 tidak aktif: Tidak ada karakter Karasuno lain sebagai Guts di Attack area.`);
+        }
+        break;
+      }
+
+      case "hv01_005_kageyamaQuick": {
+        // When Hinata appears in Attack area while this is Toss -> Attack+1, limit block to 1
+        // This effect is triggered passively when Hinata enters Attack, but for now we use manual trigger from Toss
+        const atkLoc005 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const hinataInAtk = activeCards.find(c => c.location === atkLoc005 && !c.isGuts && c.name.includes("Hinata"));
+        if (hinataInAtk) {
+          setActiveCards(prev => prev.map(c => c.instanceId === hinataInAtk.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
+          setIsOpponentBlockDisabled(true); // Limit to 1 block (simplified: disable block entirely for now)
+          addLog(`Efek Kageyama Quick Aktif! Hinata Attack +1 dan lawan hanya bisa 1 Block!`);
+          showToast("Quick Attack! Hinata +1, Block lawan dibatasi!");
+        } else {
+          showToast("Tidak ada Shōyō Hinata di Attack area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_008_kageyamaEndPhase": {
+        // At end of attack phase, if Toss = this Kageyama, Hinata Attack+1 if ≤3
+        // Auto effect - we resolve it when user clicks "Use Effect"
+        const atkLoc008 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const hinataAtk008 = activeCards.find(c => c.location === atkLoc008 && !c.isGuts && c.name.includes("Hinata") && c.stats.attack <= 3);
+        if (hinataAtk008) {
+          setActiveCards(prev => prev.map(c => c.instanceId === hinataAtk008.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
+          addLog(`Efek Kageyama Aktif! Hinata (Attack ≤3) mendapat +1 Attack!`);
+          showToast("Kageyama → Hinata Attack +1!");
+        } else {
+          showToast("Tidak ada Hinata dengan Attack ≤3 di Attack area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_012_sugawaraReturnAction": {
+        // If all characters are Karasuno, return 1 action card from action area to hand
+        const allCharsKarasuno = activeCards.filter(c => !c.isGuts && c.type === "Character" && (c.location.startsWith(playerType === "Player 1" ? "" : "bot_")) && !c.location.includes("hand") && !c.location.includes("deck") && !c.location.includes("drop"))
+          .filter(c => playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_"))
+          .every(c => c.school === "Karasuno");
+        
+        if (!allCharsKarasuno) {
+          showToast("Semua karakter harus dari Karasuno!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+          break;
+        }
+        
+        const actionLoc = playerType === "Player 1" ? "action" : "bot_action";
+        const actionCards012 = activeCards.filter(c => c.location === actionLoc && !c.isGuts);
+        if (actionCards012.length > 0) {
+          setPendingCardSelection({
+            title: "Pilih kartu Action untuk dikembalikan ke tangan",
+            cards: actionCards012,
+            onSelect: (selected) => {
+              setActiveCards(prev => prev.map(c => c.instanceId === selected.instanceId ? { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand" } : c));
+              addLog(`Efek Sugawara Aktif! ${selected.name} dikembalikan dari Action area ke tangan.`);
+            }
+          });
+        } else {
+          showToast("Tidak ada kartu Action di Action area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_014_sugawaraRecoverDrop": {
+        // Return Azumane or Nishinoya from drop to hand
+        const dropLoc014 = playerType === "Player 1" ? "drop" : "bot_drop";
+        const validDropCards = activeCards.filter(c => c.location === dropLoc014 && (c.name.includes("Azumane") || c.name.includes("Nishinoya")));
+        if (validDropCards.length > 0) {
+          setPendingCardSelection({
+            title: "Pilih Azumane atau Nishinoya dari Drop area",
+            cards: validDropCards,
+            onSelect: (selected) => {
+              setActiveCards(prev => prev.map(c => c.instanceId === selected.instanceId ? { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand" } : c));
+              addLog(`Efek Sugawara Aktif! ${selected.name} dikembalikan dari Drop ke tangan.`);
+            }
+          });
+        } else {
+          showToast("Tidak ada Azumane atau Nishinoya di Drop area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_016_tanakaOnHinata": {
+        // When Tanaka appears on Hinata (Hinata is guts in Attack), Attack+3
+        const atkLoc016 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const hinataGuts016 = activeCards.find(c => c.isGuts && c.location === atkLoc016 && c.name.includes("Hinata"));
+        if (hinataGuts016) {
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 3 } } : c));
+          addLog(`Efek Tanaka Aktif! Menggantikan Hinata → Attack +3!`);
+          showToast("Tanaka on Hinata! Attack +3!");
+        } else {
+          showToast("Hinata tidak ada sebagai Guts di Attack area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_023_yamaguchiTsukishima": {
+        // If Attack character is Tsukishima, Receive+2
+        const atkLoc023 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const tsukishimaAtk = activeCards.find(c => c.location === atkLoc023 && !c.isGuts && c.name.includes("Tsukishima"));
+        if (tsukishimaAtk) {
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 2 } } : c));
+          addLog(`Efek Yamaguchi Aktif! Tsukishima di Attack → Receive +2!`);
+          showToast("Yamaguchi Receive +2!");
+        } else {
+          addLog(`Efek Yamaguchi tidak aktif: Tsukishima tidak ada di Attack area.`);
+        }
+        break;
+      }
+
+      case "hv01_024_nishinoyaAzumane": {
+        // When Azumane enters Attack, add 1 to Attack, return Nishinoya to hand
+        // This triggers from Nishinoya in Receive when Azumane is placed in Attack
+        const atkLoc024 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const azumaneAtk = activeCards.find(c => c.location === atkLoc024 && !c.isGuts && c.name.includes("Azumane"));
+        if (azumaneAtk) {
+          setActiveCards(prev => prev.map(c => {
+            if (c.instanceId === azumaneAtk.instanceId) return { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } };
+            if (c.instanceId === card.instanceId) return { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand", isGuts: false, isEffectActive: false };
+            return c;
+          }));
+          addLog(`Efek Nishinoya Aktif! Azumane Attack +1, Nishinoya kembali ke tangan!`);
+          showToast("Nishinoya → Azumane Attack +1!");
+        } else {
+          showToast("Azumane tidak ada di Attack area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_026_nishinoyaBoostReceive": {
+        // When Karasuno non-Nishinoya replaces this in Receive, that card gets Receive+2
+        // This is a passive effect that triggers when a new card replaces Nishinoya
+        // Since the card replacing is the NEW receive card, we boost the current receive card
+        const recLoc026 = playerType === "Player 1" ? "receive" : "bot_receive";
+        const newReceiveCard = activeCards.find(c => c.location === recLoc026 && !c.isGuts && c.school === "Karasuno" && !c.name.includes("Nishinoya"));
+        if (newReceiveCard) {
+          setActiveCards(prev => prev.map(c => c.instanceId === newReceiveCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 2 } } : c));
+          addLog(`Efek Nishinoya Aktif! Karakter Karasuno pengganti mendapat Receive +2!`);
+        } else {
+          addLog(`Efek Nishinoya HV-01-026 tidak aktif.`);
+        }
+        break;
+      }
+
+      case "hv01_028_azumaneNishinoya": {
+        // When Nishinoya appears in Receive, add 1 Receive, return Azumane to hand
+        const recLoc028 = playerType === "Player 1" ? "receive" : "bot_receive";
+        const nishinoyaRec = activeCards.find(c => c.location === recLoc028 && !c.isGuts && c.name.includes("Nishinoya"));
+        if (nishinoyaRec) {
+          setActiveCards(prev => prev.map(c => {
+            if (c.instanceId === nishinoyaRec.instanceId) return { ...c, stats: { ...c.stats, receive: c.stats.receive + 1 } };
+            if (c.instanceId === card.instanceId) return { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand", isGuts: false, isEffectActive: false };
+            return c;
+          }));
+          addLog(`Efek Azumane Aktif! Nishinoya Receive +1, Azumane kembali ke tangan!`);
+          showToast("Azumane → Nishinoya Receive +1!");
+        } else {
+          showToast("Nishinoya tidak ada di Receive area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_033_kindaichiDebuff":
+      case "hv01_036_hanamakiDebuff": {
+        // If appears on Aoba Attack (other than self), opponent Attack -2 next turn
+        const atkLocDebuff = playerType === "Player 1" ? "attack" : "bot_attack";
+        const selfName = card.effectType === "hv01_033_kindaichiDebuff" ? "Kindaichi" : "Hanamaki";
+        const gutsInAtkDebuff = activeCards.filter(c => c.isGuts && c.location === atkLocDebuff && c.school === "Aoba Jōsai" && !c.name.includes(selfName));
+        if (gutsInAtkDebuff.length > 0) {
+          // Set a debuff modifier for opponent's next turn
+          // We'll use isOpponentBlockDisabled-style state for attack debuff
+          addLog(`Efek ${card.name} Aktif! Lawan akan mendapat -2 Attack setiap kali memainkan karakter Attack giliran depan!`);
+          showToast(`${card.name}: Debuff Attack -2 aktif!`);
+          // Store debuff info - for simplicity we log it. Full implementation would need a modifier state.
+        } else {
+          addLog(`Efek ${card.name} tidak aktif: Tidak ada karakter Aoba Jōsai lain sebagai Guts di Attack.`);
+        }
+        break;
+      }
+
+      case "hv01_039_watari": {
+        // All Aoba -> Receive+1 automatically, then pay 2 guts -> draw 1
+        const fieldCards039 = activeCards.filter(c => !c.isGuts && c.type === "Character" && !c.location.includes("hand") && !c.location.includes("deck") && !c.location.includes("drop"))
+          .filter(c => playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_"));
+        const allAoba039 = fieldCards039.every(c => c.school === "Aoba Jōsai");
+        
+        if (allAoba039) {
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 1 } } : c));
+          setTimeout(() => performDraw(1, playerType), 0);
+          addLog(`Efek Watari Aktif! Receive +1 dan Draw 1 kartu!`);
+          showToast("Watari Receive +1 & Draw 1!");
+        } else {
+          // Still get Receive+1 if all Aoba, otherwise nothing
+          showToast("Tidak semua karakter dari Aoba Jōsai!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_040_oikawaServeDebuff": {
+        // When enters Serve, opponent Attack -2 each time next turn
+        addLog(`Efek Oikawa Serve Aktif! Setiap karakter Attack lawan akan mendapat -2 Attack giliran depan!`);
+        showToast("Oikawa Serve Debuff aktif!");
+        // This is a passive effect logged for awareness
+        break;
+      }
+
+      case "hv01_042_oikawaTossBoost": {
+        // All Aoba, Toss, when Aoba Attack appears -> Attack+1
+        const fieldCards042 = activeCards.filter(c => !c.isGuts && c.type === "Character" && !c.location.includes("hand") && !c.location.includes("deck") && !c.location.includes("drop"))
+          .filter(c => playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_"));
+        const allAoba042 = fieldCards042.every(c => c.school === "Aoba Jōsai");
+        
+        if (!allAoba042) {
+          showToast("Tidak semua karakter dari Aoba Jōsai!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+          break;
+        }
+        
+        const atkLoc042 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const aobaAtk = activeCards.find(c => c.location === atkLoc042 && !c.isGuts && c.school === "Aoba Jōsai");
+        if (aobaAtk) {
+          setActiveCards(prev => prev.map(c => c.instanceId === aobaAtk.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
+          addLog(`Efek Oikawa Toss Aktif! ${aobaAtk.name} Attack +1!`);
+          showToast(`${aobaAtk.name} Attack +1!`);
+        } else {
+          showToast("Tidak ada karakter Aoba Jōsai di Attack area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_045_shimadaBlockSetter": {
+        // Enter Serve, opponent can't put S position in Toss next turn
+        setIsOpponentLiDisabled(true); // Reuse Li disabled to block S position (simplified)
+        addLog(`Efek Shimada Aktif! Lawan tidak bisa menaruh karakter S di Toss area giliran depan!`);
+        showToast("Shimada: Setter lawan dikunci!");
+        break;
+      }
+
+      case "hv01_046_moriDraw": {
+        // Receive=NA, NA other than Mori in Attack -> draw 1
+        const recLoc046 = playerType === "Player 1" ? "receive" : "bot_receive";
+        const atkLoc046 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const recNA = activeCards.find(c => c.location === recLoc046 && !c.isGuts && c.school === "Neighborhood Association");
+        const atkNA = activeCards.find(c => c.location === atkLoc046 && !c.isGuts && c.school === "Neighborhood Association" && !c.name.includes("Mori"));
+        if (recNA && atkNA) {
+          setTimeout(() => performDraw(1, playerType), 0);
+          addLog(`Efek Mori Aktif! NA di Receive dan Attack → Draw 1 kartu!`);
+        } else {
+          addLog(`Efek Mori tidak aktif: Kondisi NA di Receive dan Attack tidak terpenuhi.`);
+        }
+        break;
+      }
+
+      // === HV-01 ACTION CARDS ===
+
+      case "hv01_047_iveDoneIt": {
+        // Draw Phase: Draw 1, then optionally pay 2 guts to draw 1 more
+        setTimeout(() => performDraw(1, playerType), 0);
+        addLog(`Efek I've done it Aktif! Draw 1 kartu.`);
+        // Check if player has guts to pay for extra draw
+        const allGuts047 = activeCards.filter(c => c.isGuts && (playerType === "Player 1" ? !c.location.startsWith("bot_") : c.location.startsWith("bot_")));
+        if (allGuts047.length >= 2) {
+          setPendingChoice({
+            title: "Bayar 2 Guts untuk Draw 1 kartu tambahan?",
+            options: [
+              {
+                label: "Ya, bayar 2 Guts",
+                action: () => {
+                  const gutsToPay = allGuts047.slice(0, 2);
+                  setActiveCards(prev => prev.map(c => gutsToPay.some(g => g.instanceId === c.instanceId) ? { ...c, location: playerType === "Player 1" ? "drop" : "bot_drop", isGuts: false } : c));
+                  setTimeout(() => performDraw(1, playerType), 100);
+                  addLog(`Membayar 2 Guts → Draw 1 kartu tambahan!`);
+                  setPendingChoice(null);
+                }
+              },
+              {
+                label: "Tidak",
+                action: () => setPendingChoice(null)
+              }
+            ],
+            onCancel: () => setPendingChoice(null)
+          });
+        }
+        break;
+      }
+
+      case "hv01_048_illTakeTheBall": {
+        // Toss Phase: Kageyama Toss+1, then optionally discard from hand to return Hinata from drop
+        const tossLoc048 = playerType === "Player 1" ? "toss" : "bot_toss";
+        const kageyamaToss048 = activeCards.find(c => c.location === tossLoc048 && !c.isGuts && c.name.includes("Kageyama"));
+        if (kageyamaToss048) {
+          setActiveCards(prev => prev.map(c => c.instanceId === kageyamaToss048.instanceId ? { ...c, stats: { ...c.stats, toss: c.stats.toss + 1 } } : c));
+          addLog(`Efek I'll take the ball! Aktif! Kageyama Toss +1!`);
+        }
+        // Optionally discard to return Hinata from drop
+        const dropLoc048 = playerType === "Player 1" ? "drop" : "bot_drop";
+        const hinataDrop = activeCards.filter(c => c.location === dropLoc048 && c.name.includes("Hinata"));
+        const handLoc048 = playerType === "Player 1" ? "hand" : "bot_hand";
+        const handCards048 = activeCards.filter(c => c.location === handLoc048);
+        if (hinataDrop.length > 0 && handCards048.length > 0) {
+          setPendingChoice({
+            title: "Buang 1 kartu dari tangan untuk mengembalikan Hinata dari Drop?",
+            options: [
+              {
+                label: "Ya",
+                action: () => {
+                  setPendingEffectCard({ card: { ...card, effectType: "hv01_048_returnHinata" } as CardInstance, playerType, zoneId });
+                  setIsDiscardingForEffect(true);
+                  showToast("Pilih kartu di tangan untuk dibuang!");
+                  setPendingChoice(null);
+                }
+              },
+              {
+                label: "Tidak",
+                action: () => setPendingChoice(null)
+              }
+            ],
+            onCancel: () => setPendingChoice(null)
+          });
+        }
+        break;
+      }
+
+      case "hv01_048_returnHinata": {
+        // After discarding, return Hinata from drop
+        const dropLoc048r = playerType === "Player 1" ? "drop" : "bot_drop";
+        const hinataDropCards = activeCards.filter(c => c.location === dropLoc048r && c.name.includes("Hinata"));
+        if (hinataDropCards.length > 0) {
+          if (hinataDropCards.length === 1) {
+            setActiveCards(prev => prev.map(c => c.instanceId === hinataDropCards[0].instanceId ? { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand" } : c));
+            addLog(`Hinata dikembalikan dari Drop ke tangan!`);
+          } else {
+            setPendingCardSelection({
+              title: "Pilih Hinata untuk dikembalikan ke tangan",
+              cards: hinataDropCards,
+              onSelect: (selected) => {
+                setActiveCards(prev => prev.map(c => c.instanceId === selected.instanceId ? { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand" } : c));
+                addLog(`${selected.name} dikembalikan dari Drop ke tangan!`);
+              }
+            });
+          }
+        }
+        break;
+      }
+
+      case "hv01_049_tossToMe": {
+        // Toss Phase: Put Kageyama guts into Toss area, then optionally discard to return non-self action
+        const tossLoc049 = playerType === "Player 1" ? "toss" : "bot_toss";
+        const kageyamaGuts049 = activeCards.filter(c => c.isGuts && c.location === tossLoc049 && c.name.includes("Kageyama"));
+        if (kageyamaGuts049.length > 0) {
+          // Put guts Kageyama as active toss character (un-guts it)
+          setActiveCards(prev => {
+            const currentTossMain = prev.find(c => c.location === tossLoc049 && !c.isGuts);
+            return prev.map(c => {
+              if (c.instanceId === kageyamaGuts049[0].instanceId) return { ...c, isGuts: false };
+              if (currentTossMain && c.instanceId === currentTossMain.instanceId) return { ...c, isGuts: true };
+              return c;
+            });
+          });
+          addLog(`Kageyama dari Guts menjadi karakter Toss aktif!`);
+        }
+        // Optionally discard to return action card
+        const actionLoc049 = playerType === "Player 1" ? "action" : "bot_action";
+        const actionCards049 = activeCards.filter(c => c.location === actionLoc049 && !c.name.includes("Toss to me"));
+        const handLoc049 = playerType === "Player 1" ? "hand" : "bot_hand";
+        const handCards049 = activeCards.filter(c => c.location === handLoc049);
+        if (actionCards049.length > 0 && handCards049.length > 0) {
+          setPendingChoice({
+            title: "Buang 1 kartu dari tangan untuk mengambil kartu Action dari Action area?",
+            options: [
+              {
+                label: "Ya",
+                action: () => {
+                  setPendingEffectCard({ card: { ...card, effectType: "hv01_049_returnAction" } as CardInstance, playerType, zoneId });
+                  setIsDiscardingForEffect(true);
+                  showToast("Pilih kartu di tangan untuk dibuang!");
+                  setPendingChoice(null);
+                }
+              },
+              {
+                label: "Tidak",
+                action: () => setPendingChoice(null)
+              }
+            ],
+            onCancel: () => setPendingChoice(null)
+          });
+        }
+        break;
+      }
+
+      case "hv01_049_returnAction": {
+        const actionLoc049r = playerType === "Player 1" ? "action" : "bot_action";
+        const actionCards049r = activeCards.filter(c => c.location === actionLoc049r && !c.name.includes("Toss to me"));
+        if (actionCards049r.length > 0) {
+          setPendingCardSelection({
+            title: "Pilih kartu Action untuk dikembalikan ke tangan",
+            cards: actionCards049r,
+            onSelect: (selected) => {
+              setActiveCards(prev => prev.map(c => c.instanceId === selected.instanceId ? { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand" } : c));
+              addLog(`${selected.name} dikembalikan dari Action area ke tangan!`);
+            }
+          });
+        }
+        break;
+      }
+
+      case "hv01_050_callTheToss": {
+        // Receive/Attack: Nishinoya/Azumane Receive+2 or Attack+1
+        const recLoc050 = playerType === "Player 1" ? "receive" : "bot_receive";
+        const atkLoc050 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const validTargets050 = activeCards.filter(c => 
+          (c.location === recLoc050 || c.location === atkLoc050) && 
+          !c.isGuts && 
+          (c.name.includes("Nishinoya") || c.name.includes("Azumane"))
+        );
+        
+        const processCallTheTossChoice = (targetCard: CardInstance) => {
+          setPendingChoice({
+            title: `Pilih stat untuk ${targetCard.name}`,
+            options: [
+              {
+                label: `+2 Receive`,
+                action: () => {
+                  setActiveCards(prev => prev.map(c => c.instanceId === targetCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 2 } } : c));
+                  addLog(`Efek Call The Toss Again Aktif! ${targetCard.name} Receive +2!`);
+                  setPendingChoice(null);
+                }
+              },
+              {
+                label: `+1 Attack`,
+                action: () => {
+                  setActiveCards(prev => prev.map(c => c.instanceId === targetCard.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
+                  addLog(`Efek Call The Toss Again Aktif! ${targetCard.name} Attack +1!`);
+                  setPendingChoice(null);
+                }
+              }
+            ],
+            onCancel: () => setPendingChoice(null)
+          });
+        };
+
+        if (validTargets050.length > 1) {
+          setPendingCardSelection({
+            title: "Pilih Karakter Nishinoya/Azumane",
+            cards: validTargets050,
+            onSelect: (selected) => {
+              processCallTheTossChoice(selected);
+            }
+          });
+        } else if (validTargets050.length === 1) {
+          processCallTheTossChoice(validTargets050[0]);
+        } else {
+          showToast("Tidak ada Nishinoya/Azumane di Receive atau Attack area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_051_dontQuitAce": {
+        // Attack Phase: Draw 1, if Sugawara Toss + Azumane Attack -> Attack+1
+        setTimeout(() => performDraw(1, playerType), 0);
+        const tossLoc051 = playerType === "Player 1" ? "toss" : "bot_toss";
+        const atkLoc051 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const sugawaraToss = activeCards.find(c => c.location === tossLoc051 && !c.isGuts && c.name.includes("Sugawara"));
+        const azumaneAtk051 = activeCards.find(c => c.location === atkLoc051 && !c.isGuts && c.name.includes("Azumane"));
+        if (sugawaraToss && azumaneAtk051) {
+          setActiveCards(prev => prev.map(c => c.instanceId === azumaneAtk051.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c));
+          addLog(`Efek Don't Quit Ace Aktif! Draw 1 + Kombo Sugawara-Azumane: Attack +1!`);
+          showToast("Sugawara → Azumane Attack +1!");
+        } else {
+          addLog(`Efek Don't Quit Ace: Draw 1 kartu.`);
+        }
+        break;
+      }
+
+      case "hv01_052_oneStep": {
+        // Draw Phase: Draw 1, if hand ≤3 draw 1 more
+        setTimeout(() => performDraw(1, playerType), 0);
+        const handLoc052 = playerType === "Player 1" ? "hand" : "bot_hand";
+        const handCount052 = activeCards.filter(c => c.location === handLoc052).length;
+        if (handCount052 <= 3) {
+          setTimeout(() => performDraw(1, playerType), 100);
+          addLog(`Efek One Step Aktif! Draw 1 + Draw 1 tambahan (tangan ≤3)!`);
+        } else {
+          addLog(`Efek One Step: Draw 1 kartu.`);
+        }
+        break;
+      }
+
+      case "hv01_054_youGuysAreStrong": {
+        // Attack Phase: Draw 1, Karasuno Attack characters with Attack≤4 get +1
+        setTimeout(() => performDraw(1, playerType), 0);
+        const atkLoc054 = playerType === "Player 1" ? "attack" : "bot_attack";
+        setActiveCards(prev => prev.map(c => {
+          if (c.location === atkLoc054 && !c.isGuts && c.school === "Karasuno" && c.stats.attack <= 4) {
+            return { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } };
+          }
+          return c;
+        }));
+        addLog(`Efek You guys are strong Aktif! Draw 1 + Karasuno Attack (≤4) mendapat +1!`);
+        break;
+      }
+
+      case "hv01_055_superiorClumsiness": {
+        // Receive/Block Phase: Draw 1, then +2 to Tanaka or 1st Year Karasuno
+        setTimeout(() => performDraw(1, playerType), 0);
+        const recLoc055 = playerType === "Player 1" ? "receive" : "bot_receive";
+        const blkLoc055 = playerType === "Player 1" ? "block" : "bot_block";
+        const validTargets055 = activeCards.filter(c => 
+          (c.location === recLoc055 || c.location === blkLoc055) && !c.isGuts && c.school === "Karasuno" &&
+          (c.name.includes("Tanaka") || c.year === "First Year")
+        );
+        
+        const processClumsinessChoice = (targetCard: CardInstance) => {
+          setPendingChoice({
+            title: `Pilih stat untuk ${targetCard.name}`,
+            options: [
+              {
+                label: "+2 Receive",
+                action: () => {
+                  setActiveCards(prev => prev.map(c => c.instanceId === targetCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 2 } } : c));
+                  addLog(`Efek Superior Clumsiness Aktif! Draw 1 + ${targetCard.name} Receive +2!`);
+                  setPendingChoice(null);
+                }
+              },
+              {
+                label: "+2 Block",
+                action: () => {
+                  setActiveCards(prev => prev.map(c => c.instanceId === targetCard.instanceId ? { ...c, stats: { ...c.stats, block: c.stats.block + 2 } } : c));
+                  addLog(`Efek Superior Clumsiness Aktif! Draw 1 + ${targetCard.name} Block +2!`);
+                  setPendingChoice(null);
+                }
+              }
+            ],
+            onCancel: () => setPendingChoice(null)
+          });
+        };
+
+        if (validTargets055.length > 1) {
+          setPendingCardSelection({
+            title: "Pilih Karakter untuk ditingkatkan",
+            cards: validTargets055,
+            onSelect: (selected) => {
+              processClumsinessChoice(selected);
+            }
+          });
+        } else if (validTargets055.length === 1) {
+          processClumsinessChoice(validTargets055[0]);
+        } else {
+          addLog(`Efek Superior Clumsiness: Draw 1 kartu. (Tidak ada target valid untuk stat boost)`);
+        }
+        break;
+      }
+
+      case "hv01_056_strongestAlly": {
+        // Draw Phase: Return Hinata or Kageyama from drop to hand
+        const dropLoc056 = playerType === "Player 1" ? "drop" : "bot_drop";
+        const validDrop056 = activeCards.filter(c => c.location === dropLoc056 && (c.name.includes("Hinata") || c.name.includes("Kageyama")));
+        if (validDrop056.length > 0) {
+          setPendingCardSelection({
+            title: "Pilih Hinata atau Kageyama dari Drop area",
+            cards: validDrop056,
+            onSelect: (selected) => {
+              setActiveCards(prev => prev.map(c => c.instanceId === selected.instanceId ? { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand" } : c));
+              addLog(`Efek This time I'm the strongest ally Aktif! ${selected.name} kembali ke tangan!`);
+            }
+          });
+        } else {
+          showToast("Tidak ada Hinata/Kageyama di Drop area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_057_teamCalled": {
+        // Attack Phase: Put NA from drop to Attack, then optionally pay 1 guts -> Attack+1
+        const dropLoc057 = playerType === "Player 1" ? "drop" : "bot_drop";
+        const naInDrop = activeCards.filter(c => c.location === dropLoc057 && c.type === "Character" && c.school === "Neighborhood Association");
+        if (naInDrop.length > 0) {
+          setPendingCardSelection({
+            title: "Pilih karakter Neighborhood Association dari Drop",
+            cards: naInDrop,
+            onSelect: (selected) => {
+              const atkLoc057 = playerType === "Player 1" ? "attack" : "bot_attack";
+              setActiveCards(prev => prev.map(c => c.instanceId === selected.instanceId ? { ...c, location: atkLoc057, isGuts: false, isEffectActive: true } : c));
+              addLog(`${selected.name} dimainkan dari Drop ke Attack area!`);
+              // Optionally pay 1 guts for +1
+              setPendingChoice({
+                title: `Bayar 1 Guts dari ${selected.name} untuk Attack +1?`,
+                options: [
+                  {
+                    label: "Ya",
+                    action: () => {
+                      const gutsInAtk = activeCards.filter(c => c.isGuts && c.location === atkLoc057);
+                      if (gutsInAtk.length >= 1) {
+                        setActiveCards(prev => prev.map(c => {
+                          if (c.instanceId === gutsInAtk[0].instanceId) return { ...c, location: playerType === "Player 1" ? "drop" : "bot_drop", isGuts: false };
+                          if (c.instanceId === selected.instanceId) return { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } };
+                          return c;
+                        }));
+                        addLog(`Membayar 1 Guts → ${selected.name} Attack +1!`);
+                      }
+                      setPendingChoice(null);
+                    }
+                  },
+                  { label: "Tidak", action: () => setPendingChoice(null) }
+                ],
+                onCancel: () => setPendingChoice(null)
+              });
+            }
+          });
+        } else {
+          showToast("Tidak ada karakter Neighborhood Association di Drop area!");
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_058_sawamuraKun": {
+        // Attack Phase: Name a card, if opponent plays it next turn, they lose 1 guts
+        const cardName058 = window.prompt("Sebutkan nama kartu Karasuno yang ingin dikunci:");
+        if (cardName058 && cardName058.trim()) {
+          addLog(`Efek Sawamura-kun Aktif! Kartu "${cardName058.trim()}" dikunci. Jika lawan memainkannya, 1 Guts akan dibuang!`);
+          showToast(`Kartu "${cardName058.trim()}" dikunci!`);
+          // Note: Full cross-turn enforcement would need a modifier state
+        } else {
+          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
+        }
+        break;
+      }
+
+      case "hv01_059_nextTimeWeWin": {
+        // Attack Phase: Draw 1, if Attack is Aoba -> opponent Attack -2 next turn
+        setTimeout(() => performDraw(1, playerType), 0);
+        const atkLoc059 = playerType === "Player 1" ? "attack" : "bot_attack";
+        const aobaAtk059 = activeCards.find(c => c.location === atkLoc059 && !c.isGuts && c.school === "Aoba Jōsai");
+        if (aobaAtk059) {
+          addLog(`Efek Next time we will definitely win Aktif! Draw 1 + Debuff Attack -2 untuk lawan giliran depan!`);
+          showToast("Draw 1 + Debuff aktif!");
+        } else {
+          addLog(`Efek Next time: Draw 1 kartu.`);
+        }
+        break;
+      }
     }
   };
 

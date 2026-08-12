@@ -73,12 +73,12 @@ export const DeckSelectionScreen: React.FC<DeckSelectionScreenProps> = ({
       >
         <div className="absolute inset-0 bg-black/60"></div>
       </div>
-      <div className="z-10 flex flex-col items-center max-w-6xl w-full h-full mx-auto p-4 md:p-8">
+      <div className="z-10 flex flex-col items-center max-w-6xl w-full h-full mx-auto p-4 md:p-8 pt-10 md:pt-16">
         <h2 className="text-3xl md:text-5xl font-black mb-6 shrink-0 text-orange-500 tracking-wide text-center uppercase">
           Choose Your Deck
         </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6 w-full overflow-y-auto flex-1 pr-2 custom-scrollbar content-start">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6 w-full overflow-y-auto flex-1 p-4 custom-scrollbar content-start">
         {decks.map(
           (deck) => (
             <div
