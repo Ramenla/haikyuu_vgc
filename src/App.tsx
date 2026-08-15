@@ -330,7 +330,14 @@ export default function App() {
     botHasActed.current = false;
   }, [currentTurn, currentPhase]);
 
+  const recentLogsRef = useRef<Set<string>>(new Set());
+
   const addLog = (message: string) => {
+    if (recentLogsRef.current.has(message)) return;
+    recentLogsRef.current.add(message);
+    setTimeout(() => {
+      recentLogsRef.current.delete(message);
+    }, 100);
     setGameLogs((prev) => [...prev, message]);
   };
 
@@ -480,6 +487,7 @@ export default function App() {
         }
 
         if (selectedCards.length > 0) {
+          playSound("play");
           return prev.map(c =>
             selectedCards.some(sc => sc.instanceId === c.instanceId)
               ? { ...c, location: "bot_block" }
@@ -533,6 +541,7 @@ export default function App() {
           const cardToMove = prev.find((c) => c.instanceId === randomCard.instanceId);
           if (!cardToMove) return prev;
           const otherCards = prev.filter((c) => c.instanceId !== randomCard.instanceId);
+          playSound("play");
           return [...otherCards, { ...cardToMove, location }];
         }
         return prev;
@@ -606,9 +615,7 @@ export default function App() {
 
     if (newlyDrawn.length > 0) {
       setActiveCards((cards) => [...cards, ...newlyDrawn]);
-      if (isP1) {
-        playSound("draw");
-      }
+      playSound("draw");
     }
   };
 
@@ -779,19 +786,19 @@ export default function App() {
     if (currentTurn !== "Player 1") return false;
 
     if (currentPhase === "Serve Phase") {
-      return activeCards.some((c) => c.location === "serve" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("serve") && activeCards.some((c) => c.location === "serve" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Receive Phase") {
-      return activeCards.some((c) => c.location === "receive" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("receive") && activeCards.some((c) => c.location === "receive" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Toss Phase") {
-      return activeCards.some((c) => c.location === "toss" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("toss") && activeCards.some((c) => c.location === "toss" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Attack Phase") {
-      return activeCards.some((c) => c.location === "attack" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("attack") && activeCards.some((c) => c.location === "attack" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Block Phase") {
-      return activeCards.some((c) => c.location === "block" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("block") && activeCards.some((c) => c.location === "block" && !c.isGuts && c.type !== "Action");
     }
 
     return false;
@@ -1939,26 +1946,7 @@ export default function App() {
           addLog(`Efek Nishinoya Aktif! Karakter Karasuno pengganti mendapat Receive +2!`);
         } else {
           addLog(`Efek Nishinoya HV-01-026 tidak aktif.`);
-        }
-        break;
-      }
-
-      case "hv01_028_azumaneNishinoya": {
-        // When Nishinoya appears in Receive, add 1 Receive, return Azumane to hand
-        const recLoc028 = playerType === "Player 1" ? "receive" : "bot_receive";
-        const nishinoyaRec = activeCards.find(c => c.location === recLoc028 && !c.isGuts && c.name.includes("Nishinoya"));
-        if (nishinoyaRec) {
-          setActiveCards(prev => prev.map(c => {
-            if (c.instanceId === nishinoyaRec.instanceId) return { ...c, stats: { ...c.stats, receive: c.stats.receive + 1 } };
-            if (c.instanceId === card.instanceId) return { ...c, location: playerType === "Player 1" ? "hand" : "bot_hand", isGuts: false, isEffectActive: false };
-            return c;
-          }));
-          addLog(`Efek Azumane Aktif! Nishinoya Receive +1, Azumane kembali ke tangan!`);
-          showToast("Azumane → Nishinoya Receive +1!");
-        } else {
-          showToast("Nishinoya tidak ada di Receive area!");
-          setActiveCards(prev => prev.map(c => c.instanceId === card.instanceId ? { ...c, isEffectActive: true, hasUsedEffect: false } : c));
-        }
+            }
         break;
       }
 
@@ -2576,7 +2564,7 @@ export default function App() {
       }
     }
 
-    if (zoneId !== "hand" && zoneId !== "drop") {
+    if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action") {
       if (playedZonesThisTurn.includes(zoneId)) {
         showToast("Kamu hanya bisa menaruh 1 kartu di area ini pada giliran ini!");
         return;
@@ -2585,7 +2573,7 @@ export default function App() {
 
     const cardId = cardToDrop.instanceId;
     if (cardId) {
-      if (zoneId !== "hand" && zoneId !== "drop") {
+      if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action") {
         setPlayedZonesThisTurn(prev => [...prev, zoneId]);
       }
 
@@ -2622,35 +2610,32 @@ export default function App() {
           if (!placedCard) return currentCards;
           
           // 1. Hinata 002 (Baton pass)
-          if (replacedCard && replacedCard.name.includes("Hinata") && placedCard.school === "Karasuno" && placedCard.type === "Character" && placedCard.location.includes("attack")) {
+          if (replacedCard && replacedCard.id === "HV-01-002" && placedCard.school === "Karasuno" && placedCard.type === "Character" && placedCard.location.includes("attack")) {
             isOpBlockDisabled = true;
-            updatedLog = "Efek HV-01 Hinata Aktif! Opponent Block Disabled!";
+            updatedLog += (updatedLog ? "\n" : "") + "Efek HV-01 Hinata Aktif! Opponent Block Disabled!";
           }
           // 2. Kageyama 005 (When Hinata placed in Attack, Kageyama in Toss)
           if (placedCard.name.includes("Hinata") && placedCard.location.includes("attack")) {
-            const kageyama = updatedCards.find(c => c.location.includes("toss") && !c.isGuts && c.name.includes("Kageyama"));
+            const kageyama = updatedCards.find(c => c.location.includes("toss") && !c.isGuts && c.id === "HV-01-005");
             if (kageyama) {
               updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, attack: c.stats.attack + 1 } } : c);
               isOpBlockDisabled = true;
-              updatedLog = "Efek Kageyama Quick Aktif! Hinata +1 Attack & Opponent Block Disabled!";
+              updatedLog += (updatedLog ? "\n" : "") + "Efek Kageyama Quick Aktif! Hinata +1 Attack & Opponent Block Disabled!";
             }
           }
 
-          // 4. Yamaguchi 023 (Placed in receive, Tsukishima in attack GUTS)
-          if (placedCard.name.includes("Yamaguchi") && placedCard.location.includes("receive")) {
+          // 4. Yamaguchi 023 (Placed in receive, Tsukishima in attack)
+          if (placedCard.id === "HV-01-023" && placedCard.location.includes("receive")) {
              const attackLoc = placedCard.location.startsWith("bot_") ? "bot_attack" : "attack";
-             const attackGuts = updatedCards.filter(c => c.location === attackLoc && c.isGuts);
-             const lastAttackGuts = attackGuts.length > 0 ? attackGuts[attackGuts.length - 1] : null;
+             const activeAttack = updatedCards.find(c => c.location === attackLoc && !c.isGuts);
              
-             if (lastAttackGuts && lastAttackGuts.name.includes("Tsukishima")) {
+             if (activeAttack && activeAttack.name.includes("Tsukishima")) {
                updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, receive: c.stats.receive + 2 } } : c);
-               updatedLog = "Yamaguchi masuk, Tsukishima adalah Guts terakhir di Attack! Yamaguchi +2 Receive!";
+               updatedLog += (updatedLog ? "\n" : "") + "Efek Yamaguchi Aktif! Tsukishima ada di Attack Area, Yamaguchi +2 Receive!";
              }
           }
           // 5. Nishinoya 026 (Baton pass)
           if (replacedCard && replacedCard.id === "HV-01-026") {
-             addLog(`DEBUG Noya Triggered: Menimpa ${replacedCard.name}. Kartu baru: ${placedCard?.name}, school: ${placedCard?.school}, loc: ${placedCard?.location}`);
-             
              if (placedCard && placedCard.school && placedCard.school.trim() === "Karasuno" && placedCard.location === "receive" && placedCard.id !== "HV-01-026") {
                 updatedCards = updatedCards.map(c => {
                    if (c.instanceId === placedCard.instanceId) {
@@ -2661,36 +2646,34 @@ export default function App() {
                    }
                    return c;
                 });
-                updatedLog = "Efek Nishinoya (Guts) aktif! Karakter baru mendapat +2 Receive!";
-             } else {
-                addLog(`DEBUG Noya Gagal: Syarat tidak terpenuhi. Karasuno? ${placedCard?.school === "Karasuno"}, Receive? ${placedCard?.location === "receive"}`);
+                updatedLog += (updatedLog ? "\n" : "") + "Efek Nishinoya (Guts) aktif! Karakter baru mendapat +2 Receive!";
              }
           }
 
           // 7. Kindaichi 033 & Hanamaki 036 (Baton pass on Aoba Josai)
-          if (replacedCard && replacedCard.school === "Aoba Jōsai" && (placedCard.name.includes("Kindaichi") || placedCard.name.includes("Hanamaki")) && placedCard.location.includes("attack")) {
+          if (replacedCard && replacedCard.school === "Aoba Jōsai" && (placedCard.id === "HV-01-033" || placedCard.id === "HV-01-036") && placedCard.location.includes("attack")) {
             // Apply debuff marker (simply applying -2 to current opponent attack if exists, or using a global state)
             // For now, let's just log it. A continuous aura is complex without a global state flag.
-            updatedLog = "Efek Kindaichi/Hanamaki: Attack lawan akan -2 (Marker diterapkan).";
+            updatedLog += (updatedLog ? "\n" : "") + "Efek Kindaichi/Hanamaki: Attack lawan akan -2 (Marker diterapkan).";
             // We can add a property or effect marker to the activeCards.
           }
 
           // 10. Mori 046 (When Neighborhood Attack appears)
           if (placedCard.school === "Neighborhood Association" && placedCard.location.includes("attack")) {
-            const mori = updatedCards.find(c => c.location.includes("receive") && !c.isGuts && c.name.includes("Mori"));
+            const mori = updatedCards.find(c => c.location.includes("receive") && !c.isGuts && c.id === "HV-01-046");
             if (mori) {
               setTimeout(() => performDraw(1, "Player 1"), 0);
-              updatedLog = "Efek Mori aktif! Draw 1 kartu.";
+              updatedLog += (updatedLog ? "\n" : "") + "Efek Mori aktif! Draw 1 kartu.";
             }
           }
           // 11. Oikawa 040 Aura (Opponent plays Attack)
           if (placedCard.location.includes("attack")) {
             const isBotPlay = placedCard.location.startsWith("bot_");
             const opponentServeLoc = isBotPlay ? "serve" : "bot_serve"; // Opposite of player
-            const oikawa040 = updatedCards.find(c => c.location === opponentServeLoc && !c.isGuts && c.name.includes("Oikawa"));
+            const oikawa040 = updatedCards.find(c => c.location === opponentServeLoc && !c.isGuts && c.id === "HV-01-040");
             if (oikawa040) {
               updatedCards = updatedCards.map(c => c.instanceId === placedCard.instanceId ? { ...c, stats: { ...c.stats, attack: Math.max(0, c.stats.attack - 2) } } : c);
-              updatedLog = "Efek Oikawa (Serve) Aktif! Karakter Attack lawan menerima -2 Attack!";
+              updatedLog += (updatedLog ? "\n" : "") + "Efek Oikawa (Serve) Aktif! Karakter Attack lawan menerima -2 Attack!";
             }
           }
           
