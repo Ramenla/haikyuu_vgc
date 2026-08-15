@@ -14,6 +14,7 @@ interface CardModalProps {
   onActivateHandEffect: () => void;
   onLeaveGame: () => void;
   pendingChoice?: any;
+  activeCards?: CardInstance[];
 }
 
 export const CardModal: React.FC<CardModalProps> = ({
@@ -29,6 +30,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   onActivateHandEffect,
   onLeaveGame,
   pendingChoice,
+  activeCards,
 }) => {
   return (
     <div
@@ -155,15 +157,94 @@ export const CardModal: React.FC<CardModalProps> = ({
                   );
                 } else {
                   if (selectedCard && 'isEffectActive' in selectedCard && (selectedCard as CardInstance).isEffectActive && (selectedCard as CardInstance).effectType) {
+                    const card = selectedCard as CardInstance;
+                    let isEffectDisabled = currentTurn !== "Player 1";
+                    let effectButtonText = "Pakai Efek";
+                    
+                    // 1. Validasi Area
+                    const triggerMap: Record<string, string> = {
+                      "onPlayServe": "serve",
+                      "onPlayReceive": "receive",
+                      "onPlayToss": "toss",
+                      "onPlayAttack": "attack",
+                      "onPlayBlock": "block",
+                      "onPlayEvent": "action"
+                    };
+                  
+                    let isValidArea = true;
+                    const zoneId = card.location;
+                    if (card.effectTrigger === "onPlayReceiveOrToss") {
+                      if (zoneId !== "receive" && zoneId !== "toss") isValidArea = false;
+                    } else if (card.effectTrigger !== "onPlayAny" && card.effectTrigger !== "onHandActivate" && card.effectTrigger) {
+                      if (triggerMap[card.effectTrigger] !== zoneId) isValidArea = false;
+                    }
+                    
+                    // 2. Validasi Guts
+                    let hasEnoughGuts = true;
+                    if (isValidArea && card.effectCostType === 'payGuts' && activeCards) {
+                      const gutsCards = activeCards.filter(c => c.location === zoneId && c.isGuts);
+                      if (gutsCards.length < (card.effectCostValue || 0)) {
+                        hasEnoughGuts = false;
+                      }
+                    }
+                  
+                    // 3. Validasi Khusus (Custom)
+                    let customError = "";
+                    if (isValidArea && hasEnoughGuts && activeCards) {
+                      const playerType = currentTurn;
+                      const atkLoc = playerType === "Player 1" ? "attack" : "bot_attack";
+                      
+                      switch (card.effectType) {
+                        case "hv01_016_tanakaBuff": {
+                          const attackGuts = activeCards.filter(c => c.location === atkLoc && c.isGuts);
+                          const lastAttackGuts = attackGuts.length > 0 ? attackGuts[attackGuts.length - 1] : null;
+                          if (!lastAttackGuts || !lastAttackGuts.name.includes("Hinata")) customError = "Bukan Hinata";
+                          break;
+                        }
+                        case "hv01_039_watariDraw": {
+                          const myActive = activeCards.filter(c => !c.location.startsWith(playerType === "Player 1" ? "bot_" : "bot_") && !c.isGuts);
+                          if (myActive.length === 0 || !myActive.every(c => c.school === "Aoba Jōsai")) customError = "Bukan Aoba Jōsai";
+                          break;
+                        }
+                        case "hv01_041_oikawaTossBoost": {
+                          const aobaAtk = activeCards.find(c => c.location === atkLoc && !c.isGuts && c.school === "Aoba Jōsai");
+                          if (!aobaAtk) customError = "Tanpa Aoba Atk";
+                          break;
+                        }
+                        case "hv01_028_azumaneNishinoya": {
+                          const serveLoc = playerType === "Player 1" ? "serve" : "bot_serve";
+                          const receiveLoc = playerType === "Player 1" ? "receive" : "bot_receive";
+                          if (zoneId !== serveLoc) {
+                            isValidArea = false;
+                          } else {
+                            const nishinoya = activeCards.find(c => c.location === receiveLoc && !c.isGuts && c.name.includes("Nishinoya"));
+                            if (!nishinoya) customError = "Tanpa Nishinoya";
+                          }
+                          break;
+                        }
+                      }
+                    }
+
+                    if (!isValidArea) {
+                      isEffectDisabled = true;
+                      effectButtonText = "Area Salah";
+                    } else if (!hasEnoughGuts) {
+                      isEffectDisabled = true;
+                      effectButtonText = "Guts Kurang";
+                    } else if (customError !== "") {
+                      isEffectDisabled = true;
+                      effectButtonText = customError;
+                    }
+
                     buttons.push(
                       <button
                         key="use_effect_board"
                         onClick={onUseEffect}
-                        disabled={currentTurn !== "Player 1"}
-                        className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all shadow-lg ${currentTurn === "Player 1" ? "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500" : "bg-neutral-800 text-gray-600 border border-gray-700 cursor-not-allowed"
+                        disabled={isEffectDisabled}
+                        className={`w-full py-1.5 md:py-2 px-1 rounded font-bold text-[8px] md:text-xs uppercase tracking-wider transition-all shadow-lg ${!isEffectDisabled ? "bg-purple-600 hover:bg-purple-500 text-white border border-purple-500" : "bg-neutral-800 text-gray-600 border border-gray-700 cursor-not-allowed"
                           }`}
                       >
-                        Pakai Efek
+                        {effectButtonText}
                       </button>
                     );
                   } else if (currentPhase === "Start Phase" || currentPhase === "Receive Phase" || currentPhase === "Toss Phase" || currentPhase === "Attack Phase" || currentPhase === "Block Phase") {

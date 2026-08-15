@@ -915,8 +915,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 2, receive: 0, toss: 0, attack: 3, block: 2 },
     effect: "If an Attack character from Karasuno other than \"Shōyō Hinata\" appears on this character, the opponent cannot bring out a Block character for the next opponent's turn.",
     image: "/assets/HV-01/HV-01-002.png",
-    effectTrigger: "onPlayAttack",
-    effectType: "hv01_002_hinataDisableBlock"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-003",
@@ -954,8 +954,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 0, toss: 1, attack: 1, block: 2 },
     effect: "When this character is a Toss character and \"Shōyō Hinata\" appears in the Attack area, you may pay 2 guts. If you do, add 1 to the Attack point of that character, and your opponent can only put up to 1 Block character from their hand on the next turn.",
     image: "/assets/HV-01/HV-01-005.png",
-    effectTrigger: "onPlayToss",
-    effectType: "hv01_005_kageyamaQuick",
+    effectTrigger: "",
+    effectType: "",
     effectCostType: "payGuts",
     effectCostValue: 2
   },
@@ -995,8 +995,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 1, toss: 1, attack: 0, block: 2 },
     effect: "At the end of the attack phase, if this character is a Toss character, add 1 to the attack point of a \"Shōyō Hinata\" Attack character of 3 or lower.",
     image: "/assets/HV-01/HV-01-008.png",
-    effectTrigger: "onPlayToss",
-    effectType: "hv01_008_kageyamaEndPhase"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-009",
@@ -1199,8 +1199,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 3, receive: 2, toss: 0, attack: 0, block: 2 },
     effect: "When your Attack character is \"Kei Tsukishima\" and this character appears in the Receive area, add +2 to the Receive points of this character.",
     image: "/assets/HV-01/HV-01-023.png",
-    effectTrigger: "onPlayReceive",
-    effectType: "hv01_023_yamaguchiTsukishima"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-024",
@@ -1240,8 +1240,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 2, receive: 5, toss: 0, attack: 0, block: 0 },
     effect: "When a Karasuno Receive character other than \"Yū Nishinoya\" appears on this character, add +2 to the Receive point of that character.",
     image: "/assets/HV-01/HV-01-026.png",
-    effectTrigger: "onPlayReceive",
-    effectType: "hv01_026_nishinoyaBoostReceive"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-027",
@@ -1334,8 +1334,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 1, toss: 0, attack: 3, block: 2 },
     effect: "If this character appears on an attack character from Aoba Jōsai other than \"Yūtarō Kindaichi\", the attack point of that character will be reduced by -2 each time the opponent's attack character appears next turn.",
     image: "/assets/HV-01/HV-01-033.png",
-    effectTrigger: "onPlayAttack",
-    effectType: "hv01_033_kindaichiDebuff"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-034",
@@ -1376,8 +1376,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 2, toss: 0, attack: 3, block: 1 },
     effect: "If this character appears on an Attack character other than \"Takahiro Hanamaki\" from Aoba Jōsai, each time the opponent's Attack character appears on the next opponent's turn, the Attack point of that character is reduced by -2.",
     image: "/assets/HV-01/HV-01-036.png",
-    effectTrigger: "onPlayAttack",
-    effectType: "hv01_036_hanamakiDebuff"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-037",
@@ -1416,7 +1416,7 @@ export const cardDatabase: CardData[] = [
     effect: "If all your characters are Aoba Jōsai, and when this character appears in the Receive area, add 1 to the Receive point of this character. Then you may pay 2 guts. If you do, draw a card from your deck.",
     image: "/assets/HV-01/HV-01-039.png",
     effectTrigger: "onPlayReceive",
-    effectType: "hv01_039_watari",
+    effectType: "hv01_039_watariDraw",
     effectCostType: "payGuts",
     effectCostValue: 2
   },
@@ -1430,8 +1430,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 4, receive: 2, toss: 1, attack: 0, block: 0 },
     effect: "When this character enters the serve area, each time an attack character appears on the opponent's turn, the attack point of that character is reduced by -2.",
     image: "/assets/HV-01/HV-01-040.png",
-    effectTrigger: "onPlayServe",
-    effectType: "hv01_040_oikawaServeDebuff"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-041",
@@ -1497,8 +1497,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 2, toss: 0, attack: 3, block: 2 },
     effect: "If this character enters the Serve area, the opponent cannot put S character into the Toss area the next turn.",
     image: "/assets/HV-01/HV-01-045.png",
-    effectTrigger: "onPlayServe",
-    effectType: "hv01_045_shimadaBlockSetter"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-046",
@@ -1510,8 +1510,8 @@ export const cardDatabase: CardData[] = [
     stats: { serve: 1, receive: 3, toss: 1, attack: 0, block: 2 },
     effect: "If your Receive character is a Neighborhood Association character and a Neighborhood Association character other than \"Yukinari Mori\" appears in your Attack area, you may draw a card from the deck.",
     image: "/assets/HV-01/HV-01-046.png",
-    effectTrigger: "onPlayToss",
-    effectType: "hv01_046_moriDraw"
+    effectTrigger: "",
+    effectType: ""
   },
   {
     id: "HV-01-047",

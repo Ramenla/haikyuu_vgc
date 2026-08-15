@@ -175,11 +175,14 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
   // Render Mini Card untuk Game Board
   const renderMiniCard = (card: CardInstance, forceClickable = false) => {
     const isEvent = card.type === "Action";
+    const isHandCardSelected = selectedCard && 'location' in selectedCard && (selectedCard as CardInstance).location === "hand";
+    const shouldPassThrough = isHandCardSelected && card.location !== "hand" && card.location !== "bot_hand";
 
     return (
       <div
         key={card.instanceId}
         onClick={(e) => {
+          if (shouldPassThrough) return; // Prevent selection if passing through
           e.stopPropagation();
           if (isDiscardingForEffect && card.location === "hand" && pendingEffectCard) {
             onSelectCard(card);
@@ -191,15 +194,15 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
           selectedCard &&
           "instanceId" in selectedCard &&
           (selectedCard as CardInstance).instanceId === card.instanceId
-            ? "border-orange-500  scale-105 z-20"
+            ? "border-orange-500 scale-105 z-20"
             : card.isGuts && !forceClickable
             ? "border-gray-700 opacity-60 brightness-50"
             : card.isGuts && forceClickable
             ? "border-gray-700 opacity-60 brightness-50 cursor-pointer hover:border-orange-500"
-            : "border-gray-400 hover:border-orange-500 cursor-pointer"
+            : "border-gray-400 hover:border-orange-500"
         } rounded flex flex-col ${
           !card.isGuts ? " z-10" : "z-0 shadow"
-        } shrink-0 transition-colors bg-cover bg-center overflow-hidden`}
+        } shrink-0 transition-colors bg-cover bg-center overflow-hidden ${shouldPassThrough ? "pointer-events-none" : "cursor-pointer"}`}
         style={{
           backgroundImage: `url('${encodeURI(card.image)}')`,
         }}
@@ -354,6 +357,7 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
           onDeclareBreak={onDeclareBreak}
           onActivateHandEffect={onActivateHandEffect}
           pendingChoice={pendingChoice}
+          activeCards={activeCards}
           onLeaveGame={() => onNavigate("menu")}
         />
       </div>
@@ -653,6 +657,7 @@ export const GameBoardScreen: React.FC<GameBoardScreenProps> = ({
             onDeclareBreak={onDeclareBreak}
             onActivateHandEffect={onActivateHandEffect}
             pendingChoice={pendingChoice}
+            activeCards={activeCards}
             onLeaveGame={() => onNavigate("menu")}
           />
         </div>
