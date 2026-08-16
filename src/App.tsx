@@ -10,7 +10,7 @@ import { GameBoardScreen } from "./components/screens/GameBoardScreen";
 import { OnlineLobbyScreen } from "./components/screens/OnlineLobbyScreen";
 import { OnlineRoomScreen } from "./components/screens/OnlineRoomScreen";
 import CardSelectionModal from "./components/CardSelectionModal";
-import { socket, connectSocket } from "./network/socket";
+import { socket, connectSocket } from "./network/supabase";
 
 export const playSound = (type: "draw" | "play") => {
   const src = type === "draw" ? "/assets/ambilKartu.mp3" : "/assets/mainKartukeArea.mp3";

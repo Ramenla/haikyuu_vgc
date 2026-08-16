@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Screen } from "../../types/game";
-import { socket, connectSocket } from "../../network/socket";
+import { socket, connectSocket } from "../../network/supabase";
 
 interface OnlineLobbyScreenProps {
   onNavigate: (screen: Screen) => void;

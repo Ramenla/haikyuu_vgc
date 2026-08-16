@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Screen, CustomDeck } from "../../types/game";
 import { cardDatabase } from "../../data/cardDatabase";
-import { socket } from "../../network/socket";
+import { socket } from "../../network/supabase";
 
 interface OnlineRoomScreenProps {
   customDecks: CustomDeck[];
