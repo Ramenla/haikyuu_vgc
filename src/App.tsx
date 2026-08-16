@@ -2493,11 +2493,15 @@ export default function App() {
     }
 
     if (zoneId === "block") {
-      const blockCount = activeCards.filter(
-        (c) => c.location === "block" && !c.isGuts,
-      ).length;
-      if (blockCount >= 3) {
+      const activeBlockCards = activeCards.filter((c) => c.location === "block" && !c.isGuts);
+      if (activeBlockCards.length >= 3) {
         showToast("Maksimal hanya 3 karakter di Block Area!");
+        return;
+      }
+      
+      const hasSameName = activeBlockCards.some(c => c.name === cardToDrop.name);
+      if (hasSameName) {
+        showToast(`Karakter ${cardToDrop.name} sudah ada di Block Area! (Maksimal 3 karakter dengan nama berbeda)`);
         return;
       }
     }
