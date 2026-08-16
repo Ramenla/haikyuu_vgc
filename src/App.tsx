@@ -508,12 +508,6 @@ export default function App() {
       targetValue?: number,
     ) => {
       setActiveCards((prev) => {
-        if (
-          location !== "bot_block" &&
-          prev.some((c) => c.location === location && !c.isGuts)
-        ) {
-          return prev;
-        }
 
         let botHand = prev.filter(c => c.location === "bot_hand" && c.type === "Character");
         if (botHand.length === 0) return prev;
@@ -541,11 +535,21 @@ export default function App() {
 
         const randomCard = chosenCard;
         if (randomCard) {
-          const cardToMove = prev.find((c) => c.instanceId === randomCard.instanceId);
-          if (!cardToMove) return prev;
-          const otherCards = prev.filter((c) => c.instanceId !== randomCard.instanceId);
+          const replacedCard = location !== "bot_block" 
+            ? prev.find((c) => c.location === location && !c.isGuts && c.type !== "Action")
+            : undefined;
+
           playSound("play");
-          return [...otherCards, { ...cardToMove, location }];
+          
+          return prev.map((c) => {
+            if (replacedCard && c.instanceId === replacedCard.instanceId) {
+              return { ...c, isGuts: true };
+            }
+            if (c.instanceId === randomCard.instanceId) {
+              return { ...c, location };
+            }
+            return c;
+          });
         }
         return prev;
       });
