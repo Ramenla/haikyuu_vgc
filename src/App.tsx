@@ -480,9 +480,12 @@ export default function App() {
 
         for (const card of sortedCards) {
           if (selectedCards.length < 3) {
-            selectedCards.push(card);
-            currentSum += card.stats.block;
-            if (currentSum >= targetValue) break;
+            const hasSameName = selectedCards.some(sc => sc.name === card.name);
+            if (!hasSameName) {
+              selectedCards.push(card);
+              currentSum += card.stats.block;
+              if (currentSum >= targetValue) break;
+            }
           }
         }
 
@@ -689,7 +692,6 @@ export default function App() {
           ? {
             ...card,
             location: card.location.includes("block") ? (card.location.startsWith("bot_") ? "bot_drop" : "drop") : card.location,
-            isGuts: !card.location.includes("block"),
             isEffectActive: false,
           }
           : card,
@@ -783,22 +785,25 @@ export default function App() {
 
   const isPlayValid = () => {
     if (matchWinner !== null) return false;
+    
+    // In PvP, the opponent's turn disables our play valid button. 
+    // This is correct since we are always Player 1 locally.
     if (currentTurn !== "Player 1") return false;
 
     if (currentPhase === "Serve Phase") {
-      return playedZonesThisTurn.includes("serve") && activeCards.some((c) => c.location === "serve" && !c.isGuts && c.type !== "Action");
+      return activeCards.some((c) => c.location === "serve" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Receive Phase") {
-      return playedZonesThisTurn.includes("receive") && activeCards.some((c) => c.location === "receive" && !c.isGuts && c.type !== "Action");
+      return activeCards.some((c) => c.location === "receive" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Toss Phase") {
-      return playedZonesThisTurn.includes("toss") && activeCards.some((c) => c.location === "toss" && !c.isGuts && c.type !== "Action");
+      return activeCards.some((c) => c.location === "toss" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Attack Phase") {
-      return playedZonesThisTurn.includes("attack") && activeCards.some((c) => c.location === "attack" && !c.isGuts && c.type !== "Action");
+      return activeCards.some((c) => c.location === "attack" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Block Phase") {
-      return playedZonesThisTurn.includes("block") && activeCards.some((c) => c.location === "block" && !c.isGuts && c.type !== "Action");
+      return activeCards.some((c) => c.location === "block" && !c.isGuts && c.type !== "Action");
     }
 
     return false;
@@ -1127,8 +1132,21 @@ export default function App() {
 
     newDeck = newDeck.sort(() => Math.random() - 0.5);
 
-    // Build opponent/bot deck using opponentDeckType if provided (online), else Rivals
-    let botPool = getPoolForDeck(opponentDeckType || "Rivals Starter Deck", opponentDeckCards);
+    // Build opponent/bot deck using opponentDeckType if provided (online), else randomly pick one from available decks
+    let chosenBotDeck = opponentDeckType;
+    if (!chosenBotDeck) {
+      const allDecks = [
+        "Karasuno Starter Deck",
+        "Rivals Starter Deck",
+        "Karasuno Evolves Explosively Starter Deck",
+        "It's Seijō that Goes to Nationals Starter Deck",
+        "Powerhouse!! Fukurodani Academy Group Starter Deck",
+        ...customDecks.map(d => d.id)
+      ];
+      chosenBotDeck = allDecks[Math.floor(Math.random() * allDecks.length)];
+    }
+    
+    let botPool = getPoolForDeck(chosenBotDeck, opponentDeckCards);
     let botNewDeck: any[] = [];
     botPool.forEach((card) => {
       botNewDeck.push({
