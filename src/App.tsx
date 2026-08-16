@@ -2568,7 +2568,7 @@ export default function App() {
       }
     }
 
-    if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action") {
+    if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action" && zoneId !== "block") {
       if (playedZonesThisTurn.includes(zoneId)) {
         showToast("Kamu hanya bisa menaruh 1 kartu di area ini pada giliran ini!");
         return;
@@ -2577,7 +2577,7 @@ export default function App() {
 
     const cardId = cardToDrop.instanceId;
     if (cardId) {
-      if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action") {
+      if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action" && zoneId !== "block") {
         setPlayedZonesThisTurn(prev => [...prev, zoneId]);
       }
 
