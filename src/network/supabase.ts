@@ -63,6 +63,9 @@ class SocketEmulator {
     }
     else if (event === 'requestRoomState') {
       this.trigger('roomState', this.players);
+      if (this.currentChannel) {
+        this.currentChannel.send({ type: 'broadcast', event: 'requestFullState', payload: {} });
+      }
     }
     else if (this.currentChannel) {
       // Broadcast to other players
@@ -161,6 +164,16 @@ class SocketEmulator {
             this.trigger('roomUpdated', this.players);
           }
         }
+      })
+      .on('broadcast', { event: 'requestFullState' }, () => {
+        if (this.players[this.playerId]?.isHost) {
+          this.currentChannel!.send({ type: 'broadcast', event: 'fullState', payload: this.players });
+        }
+      })
+      .on('broadcast', { event: 'fullState' }, (payload) => {
+        this.players = { ...this.players, ...payload.payload };
+        this.trigger('roomState', this.players);
+        this.trigger('roomUpdated', this.players);
       })
       .on('broadcast', { event: 'updateDeck' }, (payload) => {
         const data = payload.payload;
