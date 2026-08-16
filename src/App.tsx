@@ -791,19 +791,19 @@ export default function App() {
     if (currentTurn !== "Player 1") return false;
 
     if (currentPhase === "Serve Phase") {
-      return activeCards.some((c) => c.location === "serve" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("serve") && activeCards.some((c) => c.location === "serve" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Receive Phase") {
-      return activeCards.some((c) => c.location === "receive" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("receive") && activeCards.some((c) => c.location === "receive" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Toss Phase") {
-      return activeCards.some((c) => c.location === "toss" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("toss") && activeCards.some((c) => c.location === "toss" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Attack Phase") {
-      return activeCards.some((c) => c.location === "attack" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("attack") && activeCards.some((c) => c.location === "attack" && !c.isGuts && c.type !== "Action");
     }
     if (currentPhase === "Block Phase") {
-      return activeCards.some((c) => c.location === "block" && !c.isGuts && c.type !== "Action");
+      return playedZonesThisTurn.includes("block") && activeCards.some((c) => c.location === "block" && !c.isGuts && c.type !== "Action");
     }
 
     return false;
@@ -2595,7 +2595,7 @@ export default function App() {
 
     const cardId = cardToDrop.instanceId;
     if (cardId) {
-      if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action" && zoneId !== "block") {
+      if (zoneId !== "hand" && zoneId !== "drop" && zoneId !== "action") {
         setPlayedZonesThisTurn(prev => [...prev, zoneId]);
       }
 
